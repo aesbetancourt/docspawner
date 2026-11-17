@@ -1,6 +1,7 @@
 // Measure render time for the example invoice through the render service, without HTTP.
 // Usage: pnpm bench [runs]
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { systemClock } from "../dist/adapter/out/clock/system-clock.js";
 import { TypstCliCompiler } from "../dist/adapter/out/typst/typst-cli-compiler.js";
 import { RenderSlots } from "../dist/application/service/render-slots.js";
@@ -14,7 +15,8 @@ const data: { items: unknown[] } = JSON.parse(
   await readFile(new URL("../examples/invoice/data.json", import.meta.url), "utf8"),
 );
 const renderer = createRenderService({
-  compiler: new TypstCliCompiler(),
+  // The invoice imports allowlisted packages; `pnpm packages` installs them here.
+  compiler: new TypstCliCompiler({ packagePath: fileURLToPath(new URL("../typst-packages", import.meta.url)) }),
   clock: systemClock,
   slots: new RenderSlots({ maxConcurrent: 1, maxQueued: 0 }),
 });

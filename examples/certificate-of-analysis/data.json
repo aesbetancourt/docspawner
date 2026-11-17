@@ -7,7 +7,8 @@
   "document": {
     "number": "COA-2026-00731",
     "version": "1.0",
-    "issued": "2026-11-17"
+    "issued": "2026-11-17",
+    "verificationUrl": "https://verify.example.com/coa/COA-2026-00731"
   },
   "product": {
     "name": "Paracetamol 500 mg film-coated tablets",
@@ -62,7 +63,7 @@
       "name": "Dissolution",
       "method": "Apparatus 2, 50 rpm",
       "specification": "Q = 80 % at 30 min",
-      "result": "96 % (min. 92 %)",
+      "result": "96 % (min. 93 %)",
       "conforms": true
     },
     {
@@ -89,21 +90,122 @@
   ],
   "dissolution": {
     "medium": "Phosphate buffer pH 5.8, 900 mL, 37 °C",
-    "limit": { "minutes": 30, "percent": 80 },
+    "limit": {
+      "minutes": 30,
+      "percent": 80
+    },
     "points": [
-      { "minutes": 0, "percent": 0 },
-      { "minutes": 5, "percent": 38 },
-      { "minutes": 10, "percent": 62 },
-      { "minutes": 15, "percent": 79 },
-      { "minutes": 20, "percent": 88 },
-      { "minutes": 30, "percent": 96 },
-      { "minutes": 45, "percent": 99 }
-    ]
+      {
+        "minutes": 0,
+        "percent": 0
+      },
+      {
+        "minutes": 5,
+        "percent": 38
+      },
+      {
+        "minutes": 10,
+        "percent": 62
+      },
+      {
+        "minutes": 15,
+        "percent": 79
+      },
+      {
+        "minutes": 20,
+        "percent": 88
+      },
+      {
+        "minutes": 30,
+        "percent": 96
+      },
+      {
+        "minutes": 45,
+        "percent": 99
+      }
+    ],
+    "vessels": [
+      [37.5, 39.0, 37.5, 37.4, 36.1, 37.6, 40.2, 38.8, 40.1, 38.5, 38.8, 38.4],
+      [58.7, 63.7, 63.0, 63.0, 58.6, 58.5, 60.2, 61.1, 62.6, 61.9, 63.0, 60.7],
+      [79.6, 79.8, 77.7, 82.4, 80.1, 81.4, 77.8, 77.5, 78.3, 78.8, 80.3, 79.5],
+      [87.1, 86.1, 87.0, 90.4, 86.4, 88.5, 88.9, 85.0, 88.1, 90.6, 84.0, 87.4],
+      [95.8, 94.4, 97.0, 95.9, 93.1, 97.7, 97.3, 97.9, 98.9, 96.7, 96.2, 93.4],
+      [100.2, 97.8, 98.1, 96.5, 97.1, 97.9, 101.0, 94.9, 96.1, 99.5, 101.0, 100.2]
+    ],
+    "vesselTimes": [5, 10, 15, 20, 30, 45]
   },
   "conclusion": "The batch complies with all specifications and is released for distribution.",
   "approvals": [
-    { "role": "Analyst", "name": "J. Doe", "date": "2026-11-14" },
-    { "role": "QC Reviewer", "name": "M. Rossi", "date": "2026-11-15" },
-    { "role": "Qualified Person", "name": "A. Smith", "date": "2026-11-17" }
-  ]
+    {
+      "role": "Analyst",
+      "name": "J. Doe",
+      "date": "2026-11-14"
+    },
+    {
+      "role": "QC Reviewer",
+      "name": "M. Rossi",
+      "date": "2026-11-15"
+    },
+    {
+      "role": "Qualified Person",
+      "name": "A. Smith",
+      "date": "2026-11-17"
+    }
+  ],
+  "gs1": {
+    "gtinBody": "0950600013437",
+    "expiryGs1": "291031"
+  },
+  "assay": {
+    "replicates": [99.4, 99.8, 99.6],
+    "label": "% of label claim",
+    "limits": [95.0, 105.0],
+    "maxRsd": 2.0
+  },
+  "chromatogram": {
+    "method": "HPLC, C18 column 150 × 4.6 mm, UV 245 nm, 1.0 mL/min",
+    "runMinutes": 12,
+    "peaks": [
+      {
+        "name": "4-Aminophenol",
+        "rt": 2.31,
+        "height": 0.9,
+        "width": 0.06,
+        "areaPercent": 0.02,
+        "limitPercent": 0.1
+      },
+      {
+        "name": "Impurity K",
+        "rt": 3.62,
+        "height": 0.5,
+        "width": 0.07,
+        "areaPercent": 0.01,
+        "limitPercent": 0.1
+      },
+      {
+        "name": "Paracetamol",
+        "rt": 4.84,
+        "height": 100.0,
+        "width": 0.09,
+        "areaPercent": 99.94,
+        "limitPercent": null
+      },
+      {
+        "name": "Impurity F",
+        "rt": 7.15,
+        "height": 0.6,
+        "width": 0.1,
+        "areaPercent": 0.02,
+        "limitPercent": 0.1
+      },
+      {
+        "name": "Unspecified",
+        "rt": 9.4,
+        "height": 0.35,
+        "width": 0.11,
+        "areaPercent": 0.01,
+        "limitPercent": 0.05
+      }
+    ]
+  }
 }

@@ -1,219 +1,363 @@
 {
   "number": "INV-2026-0042",
-  "date": "2026-11-16",
-  "dueDate": "2026-12-16",
-  "currency": "USD",
-  "taxRate": 0.16,
+  "issueDate": "2026-11-16",
+  "paymentTermsDays": 30,
+  "earlyPayment": {
+    "days": 10,
+    "percent": 2
+  },
+  "currency": "EUR",
   "seller": {
     "name": "Acme Studio",
     "address": "12 Example Street, Springfield",
-    "email": "billing@example.com"
+    "email": "billing@example.com",
+    "vatId": "EU000000001",
+    "iban": "DE89370400440532013000",
+    "bic": "COBADEFFXXX"
   },
   "customer": {
     "name": "Globex Corporation",
-    "address": "500 Market Avenue, Shelbyville"
+    "address": "500 Market Avenue, Shelbyville",
+    "vatId": "EU000000002",
+    "purchaseOrder": "PO-77120"
   },
   "items": [
     {
       "description": "Load testing (week 1)",
+      "category": "Infrastructure",
       "quantity": 3,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 2)",
+      "category": "Engineering",
       "quantity": 2,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "API design review (week 3)",
+      "category": "Review",
       "quantity": 6,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 4)",
+      "category": "Engineering",
       "quantity": 9,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 5)",
+      "category": "Engineering",
       "quantity": 2,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Security review (week 6)",
+      "category": "Review",
       "quantity": 2,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "API design review (week 7)",
+      "category": "Review",
       "quantity": 9,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 8)",
+      "category": "Engineering",
       "quantity": 10,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 21
     },
     {
       "description": "Code review (week 9)",
+      "category": "Review",
       "quantity": 11,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 10)",
+      "category": "Engineering",
       "quantity": 10,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Security review (week 11)",
+      "category": "Review",
       "quantity": 1,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 12)",
+      "category": "Engineering",
       "quantity": 9,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "Infrastructure setup (week 13)",
+      "category": "Infrastructure",
       "quantity": 7,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "Bug fixing (week 14)",
+      "category": "Engineering",
       "quantity": 2,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Infrastructure setup (week 15)",
+      "category": "Infrastructure",
       "quantity": 9,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "API design review (week 16)",
+      "category": "Review",
       "quantity": 10,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Code review (week 17)",
+      "category": "Review",
       "quantity": 6,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 21
     },
     {
       "description": "Bug fixing (week 18)",
+      "category": "Engineering",
       "quantity": 12,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 21
     },
     {
       "description": "Pairing session (week 19)",
+      "category": "Training",
       "quantity": 1,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 10
     },
     {
       "description": "Code review (week 20)",
+      "category": "Review",
       "quantity": 8,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Security review (week 21)",
+      "category": "Review",
       "quantity": 6,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Pairing session (week 22)",
+      "category": "Training",
       "quantity": 8,
-      "unitPrice": 75
+      "unit": "h",
+      "unitPriceCents": 7500,
+      "taxRate": 10
     },
     {
       "description": "Infrastructure setup (week 23)",
+      "category": "Infrastructure",
       "quantity": 4,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "Code review (week 24)",
+      "category": "Review",
       "quantity": 2,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Infrastructure setup (week 25)",
+      "category": "Infrastructure",
       "quantity": 9,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Load testing (week 26)",
+      "category": "Infrastructure",
       "quantity": 12,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Infrastructure setup (week 27)",
+      "category": "Infrastructure",
       "quantity": 10,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 21
     },
     {
       "description": "API design review (week 28)",
+      "category": "Review",
       "quantity": 9,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Typst template work (week 29)",
+      "category": "Engineering",
       "quantity": 6,
-      "unitPrice": 60
+      "unit": "h",
+      "unitPriceCents": 6000,
+      "taxRate": 21
     },
     {
       "description": "Documentation (week 30)",
+      "category": "Training",
       "quantity": 7,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 10
     },
     {
       "description": "API design review (week 31)",
+      "category": "Review",
       "quantity": 9,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
     },
     {
       "description": "Load testing (week 32)",
+      "category": "Infrastructure",
       "quantity": 6,
-      "unitPrice": 75
+      "unit": "h",
+      "unitPriceCents": 7500,
+      "taxRate": 21
     },
     {
       "description": "Pairing session (week 33)",
+      "category": "Training",
       "quantity": 8,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 10
     },
     {
       "description": "Documentation (week 34)",
+      "category": "Training",
       "quantity": 2,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 10
     },
     {
       "description": "Infrastructure setup (week 35)",
+      "category": "Infrastructure",
       "quantity": 8,
-      "unitPrice": 45
+      "unit": "h",
+      "unitPriceCents": 4500,
+      "taxRate": 21
     },
     {
       "description": "Backend development (week 36)",
+      "category": "Engineering",
       "quantity": 12,
-      "unitPrice": 75
+      "unit": "h",
+      "unitPriceCents": 7500,
+      "taxRate": 21
     },
     {
       "description": "Pairing session (week 37)",
+      "category": "Training",
       "quantity": 11,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 10
     },
     {
       "description": "Infrastructure setup (week 38)",
+      "category": "Infrastructure",
       "quantity": 12,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Load testing (week 39)",
+      "category": "Infrastructure",
       "quantity": 1,
-      "unitPrice": 90
+      "unit": "h",
+      "unitPriceCents": 9000,
+      "taxRate": 21
     },
     {
       "description": "Load testing (week 40)",
+      "category": "Infrastructure",
       "quantity": 3,
-      "unitPrice": 120
+      "unit": "h",
+      "unitPriceCents": 12000,
+      "taxRate": 21
+    },
+    {
+      "description": "Typst package support, annual",
+      "category": "Licenses",
+      "quantity": 1,
+      "unit": "year",
+      "unitPriceCents": 118995,
+      "taxRate": 21
+    },
+    {
+      "description": "Monitoring seats",
+      "category": "Licenses",
+      "quantity": 12,
+      "unit": "seats",
+      "unitPriceCents": 1499,
+      "taxRate": 21
     }
   ],
-  "notes": "Payment by bank transfer within 30 days. Thank you for your business."
+  "notes": "Payment by bank transfer. Scan the QR code with a banking app to pay this invoice."
 }

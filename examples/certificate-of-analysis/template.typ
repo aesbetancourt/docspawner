@@ -1,18 +1,25 @@
 // Example docspawner template: a Certificate of Analysis for a pharmaceutical batch.
 // Data contract: the data comes from data.json.
-// Everything is drawn with built-in Typst shapes, so the template needs no packages.
+// It uses the allowlisted packages: alchemist (molecule), lilaq (chromatogram, dissolution)
+// and tiaoma (GS1 DataMatrix, QR code). The chromatogram is computed from the peak table.
+
+#import "@preview/alchemist:0.2.0": skeletize, single, double, branch, cycle, fragment
+#import "@preview/lilaq:0.6.0" as lq
+#import "@preview/tiaoma:0.4.0"
 
 #let data = json("data.json")
 
 #let ink = rgb("#1f2937")
 #let accent = rgb("#0f4c81")
+#let teal = rgb("#0e7490")
 #let muted = rgb("#6b7280")
 #let line-color = rgb("#d1d5db")
+#let soft = rgb("#f3f5f8")
 #let pass = rgb("#15803d")
 #let fail = rgb("#b91c1c")
 
 #set document(title: "Certificate of Analysis " + data.document.number, author: data.company.name)
-#set text(size: 9pt, fill: ink)
+#set text(font: "Libertinus Serif", size: 9pt, fill: ink)
 #set page(
   paper: "a4",
   margin: (x: 1.8cm, top: 1.6cm, bottom: 2cm),
@@ -20,205 +27,253 @@
     set text(7.5pt, fill: muted)
     grid(
       columns: (1fr, auto),
-      [#data.company.name · #data.document.number · version #data.document.version],
+      [#data.company.name · #data.document.number · version #data.document.version · example data],
       [Page #counter(page).display() of #counter(page).final().first()],
     )
   },
 )
+#set table(
+  stroke: (x, y) => if y == 0 { (bottom: 1pt + accent) } else { (bottom: 0.4pt + line-color) },
+  inset: (x: 5pt, y: 4pt),
+)
+#show table.cell.where(y: 0): set text(weight: "bold")
 
 // --- Helpers --------------------------------------------------------------------
 
-/// A chemical formula with subscripts, for example C₈H₉NO₂.
+#let fmt(value, digits) = str(calc.round(value, digits: digits))
+#let mean(xs) = xs.sum() / xs.len()
+#let sd(xs) = {
+  let m = mean(xs)
+  calc.sqrt(xs.map(x => calc.pow(x - m, 2)).sum() / (xs.len() - 1))
+}
 #let formula(parts) = {
   parts.map(((element, count)) => if count > 1 [#element#sub[#str(count)]] else [#element]).join()
 }
-
-/// A small label for a section.
-#let section(title) = block(above: 1.4em, below: 0.6em, text(9pt, weight: "bold", fill: accent, upper(title)))
-
-/// A pass or fail marker.
+#let section(title) = block(above: 1.3em, below: 0.6em, text(9pt, weight: "bold", fill: accent, upper(title)))
 #let badge(ok) = box(
   inset: (x: 5pt, y: 2pt),
   radius: 2pt,
   fill: if ok { pass } else { fail },
-  text(7.5pt, weight: "bold", fill: white, if ok [PASS] else [FAIL]),
+  text(7pt, weight: "bold", fill: white, if ok [PASS] else [FAIL]),
+)
+#let key-values(..pairs) = table(
+  columns: (auto, 1fr),
+  column-gutter: 10pt,
+  stroke: none,
+  inset: (x: 0pt, y: 2.5pt),
+  ..pairs.pos().map(((k, v)) => (text(fill: muted, k), v)).flatten(),
 )
 
-// --- Molecule: paracetamol, drawn from lines -------------------------------------
-
-#let molecule = {
-  let bond(a, b) = place(line(start: a, end: b, stroke: 1.1pt + ink))
-  // An atom label on a white background, so it hides the end of its bond.
-  let atom(x, y, label) = place(
-    dx: x * 1pt - 11pt,
-    dy: y * 1pt - 6pt,
-    box(width: 22pt, height: 12pt, fill: white, align(center + horizon, text(8.5pt, label))),
-  )
-
-  // Benzene ring: six corners around the center (60, 64), pointy at the top.
-  let (cx, cy, r) = (60, 64, 26)
-  let corner(i) = {
-    let a = -90deg + i * 60deg
-    (cx + r * calc.cos(a), cy + r * calc.sin(a))
-  }
-  let pt((x, y)) = (x * 1pt, y * 1pt)
-  // Point between the center and a corner, for the inner line of a double bond.
-  let inner(i, k) = {
-    let (x, y) = corner(i)
-    (cx + k * (x - cx), cy + k * (y - cy))
-  }
-
-  box(width: 130pt, height: 165pt, {
-    for i in range(6) { bond(pt(corner(i)), pt(corner(calc.rem(i + 1, 6)))) }
-    // Three double bonds inside the ring.
-    for i in (0, 2, 4) {
-      let j = calc.rem(i + 1, 6)
-      let (a, b) = (inner(i, 0.72), inner(j, 0.72))
-      let mid(p, q, t) = (p.at(0) + t * (q.at(0) - p.at(0)), p.at(1) + t * (q.at(1) - p.at(1)))
-      bond(pt(mid(a, b, 0.15)), pt(mid(a, b, 0.85)))
-    }
-
-    // OH on the top corner.
-    let (tx, ty) = corner(0)
-    bond(pt((tx, ty)), pt((tx, ty - 20)))
-    atom(tx, ty - 26, [OH])
-
-    // NH–C(=O)–CH3 on the bottom corner.
-    let (bx, by) = corner(3)
-    let (nx, ny) = (bx, by + 22)
-    let (ccx, ccy) = (nx + 22, ny + 13)
-    bond(pt((bx, by)), pt((nx, ny)))
-    bond(pt((nx, ny)), pt((ccx, ccy)))
-    // C=O double bond.
-    bond(pt((ccx, ccy)), pt((ccx + 20, ccy - 12)))
-    bond(pt((ccx + 2.5, ccy + 4)), pt((ccx + 22.5, ccy - 8)))
-    bond(pt((ccx, ccy)), pt((ccx, ccy + 24)))
-    atom(nx, ny, [HN])
-    atom(ccx + 24, ccy - 14, [O])
-    atom(ccx, ccy + 29, [CH#sub[3]])
-  })
+/// GS1 check digit (mod 10, weights 3 and 1 from the right).
+#let gs1-check-digit(body) = {
+  let digits = body.clusters().rev().map(int)
+  let total = digits.enumerate().map(((i, d)) => if calc.even(i) { 3 * d } else { d }).sum()
+  calc.rem(10 - calc.rem(total, 10), 10)
 }
 
-// --- Chart: dissolution profile, drawn from lines -------------------------------
+// --- Derived values -------------------------------------------------------------
 
-#let dissolution-chart(points, limit) = {
-  let (w, h) = (250pt, 120pt)
-  let (x-max, y-max) = (45, 100)
-  let x(minutes) = minutes / x-max * w
-  let y(percent) = h - percent / y-max * h
-  let seg(a, b, stroke) = place(line(start: a, end: b, stroke: stroke))
+#let gtin = data.gs1.gtinBody + str(gs1-check-digit(data.gs1.gtinBody))
+#let pack-code = "[01]" + gtin + "[17]" + data.gs1.expiryGs1 + "[10]" + data.batch.number
 
-  box(width: w + 34pt, height: h + 30pt, pad(left: 28pt, box(width: w, height: h, {
-    // Grid and y-axis labels.
-    for p in (0, 20, 40, 60, 80, 100) {
-      seg((0pt, y(p)), (w, y(p)), 0.4pt + line-color)
-      place(dx: -26pt, dy: y(p) - 4pt, box(width: 22pt, align(right, text(7pt, fill: muted)[#p %])))
-    }
-    // X-axis labels.
-    for m in (0, 5, 10, 15, 20, 30, 45) {
-      place(dx: x(m) - 10pt, dy: h + 4pt, box(width: 20pt, align(center, text(7pt, fill: muted)[#m])))
-    }
-    place(dx: w / 2 - 30pt, dy: h + 15pt, box(width: 60pt, align(center, text(7pt, fill: muted)[time (min)])))
+#let assay = data.assay
+#let assay-mean = mean(assay.replicates)
+#let assay-rsd = sd(assay.replicates) / assay-mean * 100
+#let assay-ok = (
+  assay-mean >= assay.limits.first() and assay-mean <= assay.limits.last() and assay-rsd <= assay.maxRsd
+)
 
-    // Specification: Q at the limit time.
-    seg((x(limit.minutes), 0pt), (x(limit.minutes), h), (paint: fail, thickness: 0.7pt, dash: "dashed"))
-    seg((0pt, y(limit.percent)), (w, y(limit.percent)), (paint: fail, thickness: 0.7pt, dash: "dashed"))
-    place(
-      dx: x(limit.minutes) + 4pt,
-      dy: y(limit.percent) + 3pt,
-      text(7pt, fill: fail)[Q = #limit.percent % at #limit.minutes min],
-    )
+// Chromatogram: the sum of one Gaussian per peak, sampled every 0.02 min.
+#let chrom = data.chromatogram
+#let chrom-t = range(0, chrom.runMinutes * 50 + 1).map(i => i / 50)
+#let signal(t) = chrom.peaks.map(p => p.height * calc.exp(-calc.pow((t - p.rt) / p.width, 2) / 2)).sum()
+#let chrom-y = chrom-t.map(signal)
+#let impurities = chrom.peaks.filter(p => p.limitPercent != none)
+#let impurity-ok(p) = p.areaPercent <= p.limitPercent
+#let total-impurities = impurities.map(p => p.areaPercent).sum()
 
-    // Mean dissolution curve with markers.
-    for (a, b) in points.windows(2) {
-      seg((x(a.minutes), y(a.percent)), (x(b.minutes), y(b.percent)), 1.4pt + accent)
-    }
-    for p in points {
-      place(dx: x(p.minutes) - 2.5pt, dy: y(p.percent) - 2.5pt, circle(radius: 2.5pt, fill: accent, stroke: white))
-    }
-  })))
-}
+#let dis = data.dissolution
+#let dis-means = dis.vessels.map(mean)
+#let q-index = dis.vesselTimes.position(t => t == dis.limit.minutes)
+#let q-min = calc.min(..dis.vessels.at(q-index))
+#let dis-ok = q-min >= dis.limit.percent + 5
 
-// --- Document -------------------------------------------------------------------
+#let all-pass = data.tests.all(t => t.conforms) and assay-ok and impurities.all(impurity-ok) and dis-ok
+
+// --- Page 1 ---------------------------------------------------------------------
 
 #grid(
-  columns: (1fr, auto),
-  align: (left + bottom, right + bottom),
+  columns: (1fr, auto, auto),
+  column-gutter: 12pt,
+  align: (left + bottom, center + bottom, center + bottom),
   [
     #text(13pt, weight: "bold", data.company.name) \
-    #text(fill: muted)[#data.company.site · #data.company.address]
+    #text(fill: muted)[#data.company.site · #data.company.address] \
+    #v(4pt)
+    #text(17pt, weight: "bold", fill: accent)[Certificate of Analysis] \
+    #text(fill: muted)[No. #data.document.number · issued #data.document.issued]
   ],
   [
-    #text(16pt, weight: "bold", fill: accent)[Certificate of Analysis] \
-    #text(fill: muted)[No. #data.document.number · issued #data.document.issued]
+    #tiaoma.data-matrix(pack-code, options: (input-mode: "gs1"), width: 1.9cm)
+    #text(6.5pt, fill: muted)[GS1 · pack]
+  ],
+  [
+    #tiaoma.qrcode(data.document.verificationUrl, width: 1.9cm)
+    #text(6.5pt, fill: muted)[Verify online]
   ],
 )
 #line(length: 100%, stroke: 1pt + accent)
 
 #grid(
-  columns: (1fr, auto),
-  column-gutter: 16pt,
+  columns: (1fr, 1fr, auto),
+  column-gutter: 14pt,
   [
     #section[Product]
-    #table(
-      columns: (auto, 1fr),
-      column-gutter: 12pt,
-      stroke: none,
-      inset: (x: 0pt, y: 3pt),
-      text(fill: muted)[Product], strong(data.product.name),
-      text(fill: muted)[Active substance], data.product.substance,
-      text(fill: muted)[Molecular formula], formula(data.product.formula),
-      text(fill: muted)[Molecular weight], [#data.product.molecularWeight g/mol],
-      text(fill: muted)[CAS number], data.product.casNumber,
-      text(fill: muted)[Pharmacopoeia], data.product.pharmacopoeia,
+    #key-values(
+      ([Product], strong(data.product.name)),
+      ([Substance], data.product.substance),
+      ([Formula], formula(data.product.formula)),
+      ([Molar mass], [#data.product.molecularWeight g/mol]),
+      ([CAS number], data.product.casNumber),
+      ([GTIN], raw(gtin)),
     )
+  ],
+  [
     #section[Batch]
-    #table(
-      columns: (auto, 1fr),
-      column-gutter: 12pt,
-      stroke: none,
-      inset: (x: 0pt, y: 3pt),
-      text(fill: muted)[Batch number], strong(data.batch.number),
-      text(fill: muted)[Batch size], data.batch.size,
-      text(fill: muted)[Manufactured], data.batch.manufactured,
-      text(fill: muted)[Expiry], data.batch.expiry,
-      text(fill: muted)[Storage], data.batch.storage,
+    #key-values(
+      ([Batch], strong(data.batch.number)),
+      ([Size], data.batch.size),
+      ([Manufactured], data.batch.manufactured),
+      ([Expiry], data.batch.expiry),
+      ([Storage], data.batch.storage),
     )
   ],
   [
     #section[Structure]
-    #block(stroke: 0.5pt + line-color, radius: 3pt, inset: 6pt, molecule)
+    #block(stroke: 0.5pt + line-color, radius: 3pt, inset: 8pt, skeletize({
+      fragment("HO")
+      single(absolute: -30deg)
+      // Para-substituted ring: the amide branches off after the third bond.
+      cycle(6, {
+        double()
+        single()
+        double()
+        branch({
+          single(absolute: -30deg)
+          fragment("NH")
+          single(absolute: 30deg)
+          branch({
+            double(absolute: 90deg)
+            fragment("O")
+          })
+          single(absolute: -30deg)
+        })
+        single()
+        double()
+        single()
+      })
+    }))
   ],
 )
 
 #section[Test results]
-#let all-pass = data.tests.all(t => t.conforms)
 #table(
   columns: (1.4fr, 1fr, 1.4fr, 0.9fr, auto),
   align: (left, left, left, left, center),
-  inset: (x: 5pt, y: 5pt),
-  stroke: (x, y) => if y == 0 { (bottom: 1pt + accent) } else { (bottom: 0.4pt + line-color) },
-  fill: (x, y) => if y > 0 and calc.even(y) { rgb("#f9fafb") },
-  table.header(..([Test], [Method], [Specification], [Result], [Status]).map(h => text(weight: "bold", h))),
-  ..data
-    .tests
-    .map(t => (t.name, text(fill: muted, t.method), t.specification, strong(t.result), badge(t.conforms)))
-    .flatten(),
+  table.header([Test], [Method], [Specification], [Result], [Status]),
+  ..data.tests.map(t => (t.name, text(fill: muted, t.method), t.specification, strong(t.result), badge(t.conforms))).flatten(),
 )
 
-#section[Dissolution profile]
+#section[Assay replicates]
 #grid(
-  columns: (auto, 1fr),
+  columns: (1fr, 1fr, 1fr, 1fr, 1fr),
+  column-gutter: 8pt,
+  ..assay.replicates.enumerate().map(((i, r)) => block(
+    width: 100%,
+    inset: 7pt,
+    radius: 3pt,
+    fill: soft,
+    [#text(7pt, fill: muted)[REPLICATE #(i + 1)] \ #text(12pt, weight: "bold")[#fmt(r, 1) %]],
+  )),
+  block(width: 100%, inset: 7pt, radius: 3pt, fill: soft, [
+    #text(7pt, fill: muted)[MEAN · RSD] \ #text(12pt, weight: "bold")[#fmt(assay-mean, 2) %] #h(3pt) #text(8pt)[RSD #fmt(assay-rsd, 2) %]
+  ]),
+  block(width: 100%, inset: 7pt, radius: 3pt, fill: soft, [
+    #text(7pt, fill: muted)[LIMITS] \ #assay.limits.first()–#assay.limits.last() %, RSD ≤ #assay.maxRsd % #h(3pt) #badge(assay-ok)
+  ]),
+)
+
+#pagebreak()
+
+// --- Page 2 ---------------------------------------------------------------------
+
+#section[Related substances · HPLC chromatogram]
+#text(fill: muted)[#chrom.method. The trace is drawn from the peak table below.]
+#v(4pt)
+#align(center, lq.diagram(
+  width: 16.5cm,
+  height: 5.2cm,
+  xlabel: [Retention time (min)],
+  ylabel: [Response (mAU)],
+  ylim: (-0.1, 1.6),
+  xlim: (0, chrom.runMinutes),
+  lq.plot(chrom-t, chrom-y, mark: none, color: accent, stroke: 0.8pt),
+  ..chrom.peaks.map(p => {
+    if p.height > 1.5 {
+      // The main peak is off the zoomed scale: label it beside the peak.
+      lq.place(p.rt + 0.25, 1.3, align: left, text(7pt, fill: muted)[#p.name · #p.rt min \ off scale (#p.height mAU)])
+    } else {
+      lq.place(p.rt, p.height + 0.12, align: bottom, text(7pt, fill: muted)[#p.name \ #p.rt min])
+    }
+  }),
+))
+#text(7.5pt, fill: muted)[The y axis is zoomed to the impurity level; the paracetamol peak at #chrom.peaks.find(p => p.name == "Paracetamol").rt min reaches #chrom.peaks.find(p => p.name == "Paracetamol").height mAU.]
+
+#table(
+  columns: (1.5fr, 1fr, 1fr, 1fr, auto),
+  align: (left, right, right, right, center),
+  table.header([Peak], [RT (min)], [Area (%)], [Limit (%)], [Status]),
+  ..chrom.peaks.map(p => (
+    p.name,
+    fmt(p.rt, 2),
+    fmt(p.areaPercent, 2),
+    if p.limitPercent == none [—] else [≤ #p.limitPercent],
+    if p.limitPercent == none [—] else { badge(impurity-ok(p)) },
+  )).flatten(),
+  [*Total impurities*], [], [*#fmt(total-impurities, 2)*], [≤ 0.5], badge(total-impurities <= 0.5),
+)
+
+#section[Dissolution · 12 vessels]
+#grid(
+  columns: (1.3fr, 1fr),
   column-gutter: 14pt,
   align: horizon,
-  dissolution-chart(data.dissolution.points, data.dissolution.limit),
+  lq.diagram(
+    width: 7.6cm,
+    height: 5.2cm,
+    xlabel: [Time (min)],
+    ylabel: [Dissolved (%)],
+    ylim: (0, 105),
+    legend: (position: bottom + right),
+    ..dis.vesselTimes.zip(dis.vessels).map(((t, vs)) => lq.scatter(
+      vs.map(_ => t),
+      vs,
+      size: 3pt,
+      color: teal.transparentize(55%),
+    )),
+    lq.plot(dis.vesselTimes, dis-means, mark: "o", color: accent, label: [Mean of 12 vessels]),
+    lq.hlines(dis.limit.percent + 5, stroke: (paint: fail, dash: "dashed"), label: [Q + 5 % (#(dis.limit.percent + 5) %)]),
+  ),
   [
-    #text(fill: muted)[Medium] \
-    #data.dissolution.medium
+    #text(fill: muted)[#dis.medium] \
     #v(4pt)
-    #text(fill: muted)[Result at #data.dissolution.limit.minutes min] \
-    #let at-limit = data.dissolution.points.find(p => p.minutes == data.dissolution.limit.minutes)
-    #strong[#at-limit.percent % dissolved] (limit #data.dissolution.limit.percent %)
+    #table(
+      columns: (auto, 1fr, 1fr, 1fr),
+      align: right,
+      table.header([min], [Mean], [Min], [Max]),
+      ..dis.vesselTimes.zip(dis.vessels).map(((t, vs)) => (str(t), fmt(mean(vs), 1), fmt(calc.min(..vs), 1), fmt(calc.max(..vs), 1))).flatten(),
+    )
+    Lowest vessel at #dis.limit.minutes min: *#fmt(q-min, 1) %* #h(3pt) #badge(dis-ok)
   ],
 )
 
@@ -237,7 +292,7 @@
   columns: (1fr,) * data.approvals.len(),
   column-gutter: 14pt,
   ..data.approvals.map(a => [
-    #v(18pt)
+    #v(14pt)
     #line(length: 100%, stroke: 0.5pt + muted)
     #strong(a.name) \
     #text(fill: muted)[#a.role · #a.date]
