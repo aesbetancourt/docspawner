@@ -107,7 +107,7 @@ Edit `DEFAULT_LIMITS` in `src/domain/render.ts`. The API schema and the OpenAPI 
 
 ### Adding an example
 
-Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/examples.test.ts` picks it up. Add a row to the Examples table in `README.md`.
+Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/examples.test.ts` picks it up. Run `examples/render.sh <name>` against a running worker to save the PDF, and `pnpm previews` to render the page images. Add a section to Examples in `README.md`.
 
 ## Typst gotchas
 

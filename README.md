@@ -73,16 +73,61 @@ Customer: #data.customer
 
 ## Examples
 
-Each example is a folder with `template.typ` and `data.json`: exactly what you send to `POST /render`. A test renders every example with the real Typst binary.
+Each example is a folder with `template.typ` and `data.json`: exactly what you send to `POST /render`. The rendered PDF is next to them. A test renders every example with the real Typst binary and checks that two renders give the same bytes.
 
-| Example                                                         | What it shows                                                                                                                                                                                                                                                                                                                                                              |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`certificate-of-analysis/`](examples/certificate-of-analysis/) | A 2-page pharmaceutical Certificate of Analysis: the paracetamol structure (`alchemist`), an HPLC chromatogram computed from peak data and a 12-vessel dissolution chart (`lilaq`), assay replicates with RSD, test results with pass/fail, and GS1 DataMatrix and verification QR codes (`tiaoma`)                                                                        |
-| [`batch-release-dossier/`](examples/batch-release-dossier/)     | A 5-page pharmaceutical batch release dossier: GS1 DataMatrix and QR codes (`tiaoma`), the ibuprofen skeletal formula (`alchemist`), a process-flow diagram (`fletcher`), charts with error bars, fitted lines and a heat map (`lilaq`), and calculations in the template: content-uniformity acceptance value, dissolution f2, stability regression, and GS1 check digits |
-| [`cold-chain-shipment/`](examples/cold-chain-shipment/)         | A 2-page cold-chain report for vaccines and insulin: the route with temperatures per leg (`fletcher`), a 3-sensor temperature chart and a histogram (`lilaq`), **mean kinetic temperature** per sensor, SSCC pallet barcodes (`tiaoma`), and a release decision that switches to quarantine if any reading leaves 2–8 °C                                                   |
-| [`invoice/`](examples/invoice/)                                 | A 3-page invoice with 42 items: line items grouped by category with subtotals, VAT per rate, due and early-payment dates, a spend chart (`lilaq`), and a SEPA payment QR code (EPC GiroCode, `tiaoma`)                                                                                                                                                                     |
+The times are the mean time in the worker, measured with `examples/render.sh -n 3` against the Docker image (1 CPU, 1 render slot). Click a page to open the PDF.
 
-Run `examples/render.sh [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]` against a running worker. With no example, it renders all of them. It saves each PDF in the example's folder, for example `examples/invoice/invoice.pdf`. For each document, it reports pages, size, the time in the worker (`x-render-duration-ms`), the round trip, warnings, and a SHA-256 prefix. When the invoice is selected, it also sends `REQUESTS` invoices (default 20) from `CLIENTS` parallel clients (default 4). It then reports throughput, p50 and p95 latency, and the peak use of render slots and the queue from `/health`. The script exits with `1` if a render fails. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`.
+### Batch release dossier
+
+**5 pages · 210 KB · 560 ms** · [PDF](examples/batch-release-dossier/batch-release-dossier.pdf) · [template and data](examples/batch-release-dossier/)
+
+<p>
+  <a href="examples/batch-release-dossier/batch-release-dossier.pdf"><img src="docs/images/examples/batch-release-dossier-1.png" alt="Batch release dossier, page 1" width="150"></a>
+  <a href="examples/batch-release-dossier/batch-release-dossier.pdf"><img src="docs/images/examples/batch-release-dossier-2.png" alt="Batch release dossier, page 2" width="150"></a>
+  <a href="examples/batch-release-dossier/batch-release-dossier.pdf"><img src="docs/images/examples/batch-release-dossier-3.png" alt="Batch release dossier, page 3" width="150"></a>
+  <a href="examples/batch-release-dossier/batch-release-dossier.pdf"><img src="docs/images/examples/batch-release-dossier-4.png" alt="Batch release dossier, page 4" width="150"></a>
+  <a href="examples/batch-release-dossier/batch-release-dossier.pdf"><img src="docs/images/examples/batch-release-dossier-5.png" alt="Batch release dossier, page 5" width="150"></a>
+</p>
+
+A pharmaceutical batch release dossier: GS1 DataMatrix and QR codes (`tiaoma`), the ibuprofen skeletal formula (`alchemist`), a process-flow diagram (`fletcher`), and charts with error bars, fitted lines and a heat map (`lilaq`). The template computes the content-uniformity acceptance value, the dissolution f2 factor, the stability regression, and the GS1 check digits.
+
+### Certificate of Analysis
+
+**2 pages · 148 KB · 326 ms** · [PDF](examples/certificate-of-analysis/certificate-of-analysis.pdf) · [template and data](examples/certificate-of-analysis/)
+
+<p>
+  <a href="examples/certificate-of-analysis/certificate-of-analysis.pdf"><img src="docs/images/examples/certificate-of-analysis-1.png" alt="Certificate of Analysis, page 1" width="150"></a>
+  <a href="examples/certificate-of-analysis/certificate-of-analysis.pdf"><img src="docs/images/examples/certificate-of-analysis-2.png" alt="Certificate of Analysis, page 2" width="150"></a>
+</p>
+
+A pharmaceutical Certificate of Analysis: the paracetamol structure (`alchemist`), an HPLC chromatogram computed from peak data and a 12-vessel dissolution chart (`lilaq`), assay replicates with RSD, test results with pass/fail, and GS1 DataMatrix and verification QR codes (`tiaoma`).
+
+### Cold-chain shipment report
+
+**2 pages · 80 KB · 253 ms** · [PDF](examples/cold-chain-shipment/cold-chain-shipment.pdf) · [template and data](examples/cold-chain-shipment/)
+
+<p>
+  <a href="examples/cold-chain-shipment/cold-chain-shipment.pdf"><img src="docs/images/examples/cold-chain-shipment-1.png" alt="Cold-chain shipment report, page 1" width="150"></a>
+  <a href="examples/cold-chain-shipment/cold-chain-shipment.pdf"><img src="docs/images/examples/cold-chain-shipment-2.png" alt="Cold-chain shipment report, page 2" width="150"></a>
+</p>
+
+A cold-chain report for vaccines and insulin: the route with temperatures per leg (`fletcher`), a 3-sensor temperature chart and a histogram (`lilaq`), the mean kinetic temperature per sensor, SSCC pallet barcodes (`tiaoma`), and a release decision that switches to quarantine if any reading leaves 2–8 °C.
+
+### Invoice
+
+**3 pages · 101 KB · 118 ms** · [PDF](examples/invoice/invoice.pdf) · [template and data](examples/invoice/)
+
+<p>
+  <a href="examples/invoice/invoice.pdf"><img src="docs/images/examples/invoice-1.png" alt="Invoice, page 1" width="150"></a>
+  <a href="examples/invoice/invoice.pdf"><img src="docs/images/examples/invoice-2.png" alt="Invoice, page 2" width="150"></a>
+  <a href="examples/invoice/invoice.pdf"><img src="docs/images/examples/invoice-3.png" alt="Invoice, page 3" width="150"></a>
+</p>
+
+An invoice with 42 items: line items grouped by category with subtotals, VAT per rate, due and early-payment dates, a spend chart (`lilaq`), and a SEPA payment QR code (EPC GiroCode, `tiaoma`).
+
+### Render the examples and see the metrics
+
+Run `examples/render.sh [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]` against a running worker. With no example, it renders all of them. It saves each PDF in the example's folder, for example `examples/invoice/invoice.pdf`. After you change an example, run it again, and run `pnpm previews` to render the page images in `docs/images/examples/`. For each document, it reports pages, size, the time in the worker (`x-render-duration-ms`), the round trip, warnings, and a SHA-256 prefix. When the invoice is selected, it also sends `REQUESTS` invoices (default 20) from `CLIENTS` parallel clients (default 4). It then reports throughput, p50 and p95 latency, and the peak use of render slots and the queue from `/health`. The script exits with `1` if a render fails. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`.
 
 ## API
 
@@ -148,16 +193,17 @@ Returns `{ "status": "ok", "typstVersion": "0.15.1", "renders": { ... } }`. The 
 
 Environment variables. The worker checks them at startup and lists every invalid one.
 
-| Variable                            | Default        | Description                                                                              |
-| ----------------------------------- | -------------- | ---------------------------------------------------------------------------------------- |
-| `PORT`                              | `3000`         | HTTP port                                                                                |
-| `HOST`                              | `127.0.0.1`    | Bind address. The Docker image uses `0.0.0.0`.                                           |
-| `LOG_LEVEL`                         | `info`         | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`                             |
-| `TYPST_BIN`                         | `typst`        | Path to the Typst binary                                                                 |
-| `DOCSPAWNER_FONT_PATHS`             | none           | Extra font folders, separated by `:`                                                     |
-| `DOCSPAWNER_PACKAGE_PATH`           | none           | Folder with the allowlisted Typst packages. The Docker image sets `/opt/typst-packages`. |
-| `DOCSPAWNER_MAX_CONCURRENT_RENDERS` | number of CPUs | Renders that run at the same time. Match it to the CPUs of the container.                |
-| `DOCSPAWNER_MAX_QUEUED_RENDERS`     | `100`          | Renders that wait for a free slot. More requests get `503`.                              |
+| Variable                            | Default                       | Description                                                                                                                   |
+| ----------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                              | `3000`                        | HTTP port                                                                                                                     |
+| `HOST`                              | `127.0.0.1`                   | Bind address. The Docker image uses `0.0.0.0`.                                                                                |
+| `LOG_LEVEL`                         | `info`                        | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`                                                                  |
+| `LOG_FORMAT`                        | `json`                        | `json` for log collectors, `pretty` for one readable line per event. `pnpm start` sets `pretty`.                              |
+| `TYPST_BIN`                         | `typst`                       | Path to the Typst binary                                                                                                      |
+| `DOCSPAWNER_FONT_PATHS`             | none                          | Extra font folders, separated by `:`                                                                                          |
+| `DOCSPAWNER_PACKAGE_PATH`           | `typst-packages/` in the repo | Folder with the allowlisted Typst packages. `pnpm packages` installs them there. The Docker image sets `/opt/typst-packages`. |
+| `DOCSPAWNER_MAX_CONCURRENT_RENDERS` | number of CPUs                | Renders that run at the same time. Match it to the CPUs of the container.                                                     |
+| `DOCSPAWNER_MAX_QUEUED_RENDERS`     | `100`                         | Renders that wait for a free slot. More requests get `503`.                                                                   |
 
 ## Guarantees and limits
 
@@ -262,12 +308,12 @@ Expected failures are values, not exceptions. The HTTP adapter maps them to stat
 
 Around the code:
 
-| Folder              | Contents                                                                                        |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| `examples/`         | Example templates and data, and `render.sh` to send one to a running worker                     |
-| `docs/adr/`         | Architecture decision records                                                                   |
-| `docs/openapi.json` | The API contract, generated from the route schemas                                              |
-| `scripts/`          | `bench.ts` (render speed), `load.ts` (load test), `export-openapi.ts` (writes the API contract) |
+| Folder              | Contents                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `examples/`         | Example templates, data, and rendered PDFs, and `render.sh` to render them with a running worker and show metrics                           |
+| `docs/adr/`         | Architecture decision records                                                                                                               |
+| `docs/openapi.json` | The API contract, generated from the route schemas                                                                                          |
+| `scripts/`          | `bench.ts` (render speed), `load.ts` (load test), `export-openapi.ts` (writes the API contract), `example-previews.sh` (README page images) |
 
 ## Decisions
 
@@ -294,7 +340,7 @@ Requirements: Node 24 (see `.nvmrc`), pnpm, and Typst 0.15.1 on `PATH`.
 
 ```sh
 pnpm install
-pnpm start         # build and start the worker on :3000
+pnpm start         # install the packages, build, and start the worker on :3000 with readable logs
 pnpm check         # every check in one command
 ```
 
@@ -309,6 +355,7 @@ pnpm check         # every check in one command
 | `pnpm typecheck`                    | Type check                                                                       |
 | `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                   |
 | `pnpm bench` / `pnpm load`          | Measure render time / load-test a running worker                                 |
+| `pnpm previews`                     | Render the example page images in `docs/images/examples/`                        |
 
 Code standards for contributors and AI agents are in [`CLAUDE.md`](CLAUDE.md).
 

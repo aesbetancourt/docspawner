@@ -3,8 +3,9 @@ dist/
 *.tsbuildinfo
 .DS_Store
 
-# Rendered output
+# Rendered output, except the example PDFs shown in the README
 *.pdf
+!examples/*/*.pdf
 coverage/
 .archify/
 
