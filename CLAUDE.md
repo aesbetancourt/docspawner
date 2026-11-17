@@ -107,7 +107,7 @@ Edit `DEFAULT_LIMITS` in `src/domain/render.ts`. The API schema and the OpenAPI 
 
 ### Adding an example
 
-Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/examples.test.ts` picks it up. Run `examples/render.sh <name>` against a running worker to save the PDF, and `pnpm previews` to render the page images. Add a section to Examples in `README.md`.
+Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/examples.test.ts` picks it up. Run `pnpm examples <name>` against a running worker to save the PDF, and `pnpm previews` to render the page images. Add a section to Examples in `README.md`.
 
 ## Typst gotchas
 
@@ -115,4 +115,4 @@ Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/exa
 - In markup, a `#let` line ends at the newline. Wrap a multi-line expression in `{ }`.
 - Typst prints 0-based columns. `typst-diagnostics.ts` converts them to 1-based.
 - System fonts are ignored for deterministic output. Only fonts embedded in Typst and the folders in `DOCSPAWNER_FONT_PATHS` are available.
-- `pnpm bench` and `pnpm openapi` import from `dist/`. They run `pnpm build` first. `examples/render.sh` sends HTTP requests to a running worker.
+- `pnpm bench` and `pnpm openapi` import from `dist/`. They run `pnpm build` first. `pnpm examples` sends HTTP requests to a running worker.
