@@ -1,7 +1,18 @@
+// Parser for the "human" diagnostic format of the Typst CLI. Example input:
+//
+//   error: unknown variable: nmae
+//     ┌─ main.typ:3:7
+//     │
+//   3 │ Hello #nmae
+//     │        ^^^^
+//     = hint: ...
 import { DIAGNOSTIC_SEVERITY, type Diagnostic, type DiagnosticSeverity } from "../../../domain/render.js";
 
+/** "error: message" or "warning: message". It starts a new diagnostic. */
 const HEADER = /^(error|warning): (.*)$/;
+/** "┌─ file:line:column". The first one gives the location of the diagnostic. */
 const LOCATION = /^\s*┌─ (.+):(\d+):(\d+)\s*$/;
+/** "= hint: text". */
 const HINT = /^\s*= hint: (.*)$/;
 
 /**
@@ -27,6 +38,11 @@ export function parseTypstDiagnostics(stderr: string): Diagnostic[] {
   return diagnostics;
 }
 
+/**
+ * Map the first word of a header line to a severity.
+ * @param word - "error" or "warning".
+ * @returns The severity. Anything that is not "warning" is an error.
+ */
 function toSeverity(word: string | undefined): DiagnosticSeverity {
   if (word === DIAGNOSTIC_SEVERITY.warning) {
     return DIAGNOSTIC_SEVERITY.warning;
@@ -34,7 +50,11 @@ function toSeverity(word: string | undefined): DiagnosticSeverity {
   return DIAGNOSTIC_SEVERITY.error;
 }
 
-/** Add a location or a hint line to the diagnostic it belongs to. */
+/**
+ * Add a location or a hint line to the diagnostic it belongs to. Other lines (the source excerpt) are ignored.
+ * @param diagnostic - The diagnostic to change in place.
+ * @param line - One line of stderr after the header.
+ */
 function addDetail(diagnostic: Diagnostic, line: string): void {
   const [, file, lineNumber, column] = LOCATION.exec(line) ?? [];
   if (file && diagnostic.line === undefined) {

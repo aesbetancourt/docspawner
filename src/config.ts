@@ -1,15 +1,15 @@
+// Server settings from environment variables. Startup code: it may import anything, and only main.ts imports it.
 import { availableParallelism } from "node:os";
 import { fileURLToPath } from "node:url";
 import * as z from "zod/v4";
+import { LOG_FORMAT, type LogFormat } from "./adapter/in/http/logger.js";
 
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace", "silent"] as const;
-
-/** `json` is for log collectors. `pretty` is for a person who reads the terminal. */
-export const LOG_FORMAT = { json: "json", pretty: "pretty" } as const;
 
 // `pnpm packages` installs the allowlist here. The Docker image sets its own folder.
 const REPO_PACKAGE_PATH = fileURLToPath(new URL("../typst-packages", import.meta.url));
 
+/** Every environment variable the worker reads, with its type and default. Strings are coerced to numbers. */
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
   HOST: z.string().min(1).default("127.0.0.1"),
@@ -25,16 +25,23 @@ const envSchema = z.object({
     .transform((value) => value?.split(":").filter(Boolean) ?? []),
 });
 
+/** The settings, with readable names. `main.ts` uses them to build every part. */
 export interface ServerConfig {
+  /** TCP port of the HTTP server. */
   port: number;
+  /** Address to listen on. "0.0.0.0" in a container. */
   host: string;
   logLevel: (typeof LOG_LEVELS)[number];
-  logFormat: (typeof LOG_FORMAT)[keyof typeof LOG_FORMAT];
+  logFormat: LogFormat;
+  /** Path or name of the Typst binary. */
   typstBinary: string;
+  /** Extra font folders, from a colon-separated list. */
   fontPaths: string[];
   /** Folder with the pre-installed Typst packages from the allowlist (ADR-0012). */
   packagePath: string;
+  /** Render slots (ADR-0011). Default: the number of CPUs. */
   maxConcurrentRenders: number;
+  /** Renders that can wait for a slot before the worker returns 503. */
   maxQueuedRenders: number;
 }
 

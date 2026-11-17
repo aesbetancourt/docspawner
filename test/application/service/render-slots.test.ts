@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { RenderSlots } from "../../../src/application/service/render-slots.js";
 
-/** A task that finishes only when the test says so. */
+/**
+ * Tasks that finish only when the test says so.
+ * @returns `task` to start a task, `pending` to finish or fail each started task, and the highest number that ran at once.
+ */
 function controlledTasks() {
   const pending: { finish: () => void; fail: () => void }[] = [];
   let running = 0;
@@ -24,9 +27,15 @@ function controlledTasks() {
   return { task, pending, maxRunning: () => maxRunning };
 }
 
+/** Wait until pending promise callbacks have run. */
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-/** Run `step(0)`, then `step(1)`, and so on: each step waits for the one before it. */
+/**
+ * Run `step(0)`, then `step(1)`, and so on: each step waits for the one before it.
+ * @param count - The number of steps.
+ * @param step - The work for one step.
+ * @returns A promise that resolves after the last step.
+ */
 function inSequence(count: number, step: (index: number) => Promise<void>): Promise<void> {
   return Array.from({ length: count }, (_, index) => index).reduce(
     (previous, index) => previous.then(() => step(index)),

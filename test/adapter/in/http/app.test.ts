@@ -4,6 +4,11 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { buildApp } from "../../../../src/adapter/in/http/app.js";
 import { createRealRenderer } from "../../../support/real-renderer.js";
 
+/**
+ * A fake inbound port that returns a fixed result and records each request.
+ * @param result - The result every render returns.
+ * @returns The fake, with `calls` for the requests it received.
+ */
 function fakeRenderer(result: RenderResult): RenderDocument & { calls: unknown[] } {
   const calls: unknown[] = [];
   return {

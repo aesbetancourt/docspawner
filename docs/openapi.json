@@ -186,7 +186,7 @@
         "tags": [
           "render"
         ],
-        "description": "Compiles the template with the data and returns the PDF.\n\n**Template contract:** the data is available as the file `data.json`. Read it with `#let data = json(\"data.json\")`.\n\n**Determinism:** the same template, data, and `options.timestamp` give a byte-identical PDF.\n\n**Limits:** template 1 MB, data 5 MB, request body 8 MB, compile time 10 s by default (max 60 s).\n\n**Capacity:** the worker runs a fixed number of renders at once and queues the rest. The compile timeout starts when the render starts. When the queue is full, the worker returns `503` with `Retry-After`.\nOnly fonts embedded in Typst are available. Typst packages are not downloaded from the network.",
+        "description": "Compiles the template with the data and returns the PDF.\n\n**Template contract:** the data is available as the file `data.json`. Read it with `#let data = json(\"data.json\")`.\n\n**Determinism:** the same template, data, and `options.timestamp` give a byte-identical PDF.\n\n**Limits:** template 1 MB, data 5 MB, request body 8 MB, compile time 10 s by default (max 60 s).\n\n**Capacity:** the worker runs a fixed number of renders at once and queues the rest. The compile timeout starts when the render starts. When the queue is full, the worker returns `503` with `Retry-After`.\n\n**Fonts and packages:** system fonts are ignored. Templates can use the fonts embedded in Typst, the configured font folders, and the allowlisted Typst packages. Packages are never downloaded while rendering.",
         "requestBody": {
           "required": true,
           "content": {

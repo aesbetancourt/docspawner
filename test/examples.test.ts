@@ -7,6 +7,7 @@ import { createRealRenderer } from "./support/real-renderer.js";
 
 const EXAMPLES = resolve(import.meta.dirname, "../examples");
 const renderer = createRealRenderer();
+/** The SHA-256 of a PDF, to compare two renders byte for byte. */
 const hash = (pdf: Uint8Array) => createHash("sha256").update(pdf).digest("hex");
 
 const examples = readdirSync(EXAMPLES, { withFileTypes: true })
@@ -15,7 +16,9 @@ const examples = readdirSync(EXAMPLES, { withFileTypes: true })
 
 describe("examples", () => {
   it("has examples to test", () => {
-    expect(examples).toEqual(expect.arrayContaining(["certificate-of-analysis", "cold-chain-shipment", "invoice"]));
+    expect(examples).toEqual(
+      expect.arrayContaining(["batch-release-dossier", "certificate-of-analysis", "cold-chain-shipment", "invoice"]),
+    );
   });
 
   for (const name of examples) {

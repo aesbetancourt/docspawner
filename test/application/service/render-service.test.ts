@@ -4,11 +4,17 @@ import type { CompileJob, CompileOutcome, TypstCompiler } from "../../../src/app
 import { RenderSlots } from "../../../src/application/service/render-slots.js";
 import { createRenderService } from "../../../src/application/service/render-service.js";
 
+/** New render slots for each test, so tests do not share a queue. */
 const slots = () => new RenderSlots({ maxConcurrent: 1, maxQueued: 10 });
 
 const fixedClock: Clock = { now: () => new Date("2026-01-01T00:00:00Z") };
 const FIXED_SECONDS = Date.UTC(2026, 0, 1) / 1000;
 
+/**
+ * A fake outbound port that returns a fixed outcome and records each job. It needs no Typst binary.
+ * @param outcome - The outcome every compile returns.
+ * @returns The fake, with `jobs` for the jobs it received.
+ */
 function fakeCompiler(outcome: CompileOutcome): TypstCompiler & { jobs: CompileJob[] } {
   const jobs: CompileJob[] = [];
   return {

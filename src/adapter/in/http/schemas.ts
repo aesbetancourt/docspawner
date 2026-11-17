@@ -16,11 +16,21 @@ export const HTTP_ERROR_KIND = {
 /** Largest HTTP request body. It must be larger than the template and data limits together. */
 export const BODY_LIMIT_BYTES = 8_000_000;
 
-const mb = (bytes: number) => `${bytes / 1_000_000} MB`;
+/**
+ * Format a byte count for the API description.
+ * @param bytes - A size in bytes.
+ * @returns For example "5 MB".
+ */
+function mb(bytes: number): string {
+  return `${bytes / 1_000_000} MB`;
+}
+
 const { maxTemplateBytes, maxDataBytes, defaultTimeoutMs, maxTimeoutMs } = DEFAULT_LIMITS;
 
+/** A small template for the request example in Swagger UI. */
 const EXAMPLE_TEMPLATE = '#let data = json("data.json")\n= Invoice #data.number\nCustomer: #data.customer';
 
+/** A shared schema: the 422 response refers to it with `$ref: "Diagnostic#"`. */
 export const diagnosticSchema = {
   $id: "Diagnostic",
   type: "object",
@@ -44,6 +54,7 @@ export const diagnosticSchema = {
   },
 } as const;
 
+/** The body of `POST /render`. Fastify rejects a body that does not match, before the handler runs. */
 export const renderRequestSchema = {
   $id: "RenderRequest",
   type: "object",
@@ -86,26 +97,39 @@ export const renderRequestSchema = {
   ],
 } as const;
 
-function errorSchema(
-  description: string,
-  kind: readonly string[],
-  properties: Record<string, unknown>,
-  required: string[] = [],
-) {
+/** The parts of one error response schema. */
+interface ErrorSchemaParams {
+  /** What the status code means, for the OpenAPI document. */
+  description: string;
+  /** The error kinds this status code can have. */
+  kinds: readonly string[];
+  /** The fields of `error` besides `kind`. */
+  properties: Record<string, unknown>;
+  /** The fields of `error` that are always present, besides `kind`. */
+  required?: string[];
+}
+
+/**
+ * Build the schema of an error response: `{ error: { kind, ...properties } }`.
+ * @param params - The description, the kinds, and the fields of `error`.
+ * @returns A JSON Schema for one status code.
+ */
+function errorSchema(params: Readonly<ErrorSchemaParams>) {
   return {
-    description,
+    description: params.description,
     type: "object",
     required: ["error"],
     properties: {
       error: {
         type: "object",
-        required: ["kind", ...required],
-        properties: { kind: { type: "string", enum: kind }, ...properties },
+        required: ["kind", ...(params.required ?? [])],
+        properties: { kind: { type: "string", enum: params.kinds }, ...params.properties },
       },
     },
   } as const;
 }
 
+/** The headers of a 200 response, for the OpenAPI document. */
 const PDF_HEADERS = {
   "content-disposition": {
     type: "string",
@@ -119,6 +143,7 @@ const PDF_HEADERS = {
   "x-typst-warnings": { type: "integer", description: "Number of Typst warnings. The PDF was still produced." },
 } as const;
 
+/** The OpenAPI and validation schema of `POST /render`, with every response. */
 export const renderRouteSchema = {
   tags: ["render"],
   operationId: "renderDocument",
@@ -133,7 +158,8 @@ export const renderRouteSchema = {
     `**Limits:** template ${mb(maxTemplateBytes)}, data ${mb(maxDataBytes)}, request body ${mb(BODY_LIMIT_BYTES)}, compile time ${defaultTimeoutMs / 1000} s by default (max ${maxTimeoutMs / 1000} s).`,
     "",
     "**Capacity:** the worker runs a fixed number of renders at once and queues the rest. The compile timeout starts when the render starts. When the queue is full, the worker returns `503` with `Retry-After`.",
-    "Only fonts embedded in Typst are available. Typst packages are not downloaded from the network.",
+    "",
+    "**Fonts and packages:** system fonts are ignored. Templates can use the fonts embedded in Typst, the configured font folders, and the allowlisted Typst packages. Packages are never downloaded while rendering.",
   ].join("\n"),
   body: { $ref: "RenderRequest#" },
   response: {
@@ -142,25 +168,21 @@ export const renderRouteSchema = {
       headers: PDF_HEADERS,
       content: { "application/pdf": { schema: { type: "string", format: "binary" } } },
     },
-    400: errorSchema(
-      "The request is not valid: a missing field, a wrong type, or an empty template.",
-      [RENDER_ERROR_KIND.invalidInput],
-      {
-        message: { type: "string" },
-      },
-    ),
-    408: errorSchema(
-      "The compile took more than `timeoutMs`. Typst was stopped.",
-      [RENDER_ERROR_KIND.timeout],
-      {
-        timeoutMs: { type: "integer" },
-      },
-      ["timeoutMs"],
-    ),
-    413: errorSchema(
-      "The template, the data, or the request body is above its size limit.",
-      [RENDER_ERROR_KIND.inputTooLarge],
-      {
+    400: errorSchema({
+      description: "The request is not valid: a missing field, a wrong type, or an empty template.",
+      kinds: [RENDER_ERROR_KIND.invalidInput],
+      properties: { message: { type: "string" } },
+    }),
+    408: errorSchema({
+      description: "The compile took more than `timeoutMs`. Typst was stopped.",
+      kinds: [RENDER_ERROR_KIND.timeout],
+      properties: { timeoutMs: { type: "integer" } },
+      required: ["timeoutMs"],
+    }),
+    413: errorSchema({
+      description: "The template, the data, or the request body is above its size limit.",
+      kinds: [RENDER_ERROR_KIND.inputTooLarge],
+      properties: {
         field: {
           type: "string",
           enum: Object.values(LIMITED_FIELD),
@@ -169,30 +191,29 @@ export const renderRouteSchema = {
         limitBytes: { type: "integer", description: "Set when a core limit is exceeded." },
         message: { type: "string", description: "Set when the HTTP body limit is exceeded." },
       },
-    ),
-    503: errorSchema(
-      "The worker is at capacity: every render slot is busy and the wait queue is full. Retry after `Retry-After` seconds.",
-      [RENDER_ERROR_KIND.busy],
-      { retryAfterSeconds: { type: "integer" } },
-      ["retryAfterSeconds"],
-    ),
-    415: errorSchema(
-      "The content type is not supported, for example `application/xml`. Send `application/json`.",
-      [RENDER_ERROR_KIND.invalidInput],
-      {
-        message: { type: "string" },
-      },
-    ),
-    422: errorSchema(
-      "The template does not compile. Each diagnostic has the location and Typst's hints.",
-      [RENDER_ERROR_KIND.compileFailed],
-      {
-        diagnostics: { type: "array", items: { $ref: "Diagnostic#" } },
-      },
-      ["diagnostics"],
-    ),
-    500: errorSchema("Unexpected server error. No internal details are returned.", [HTTP_ERROR_KIND.internal], {
-      message: { type: "string" },
+    }),
+    503: errorSchema({
+      description:
+        "The worker is at capacity: every render slot is busy and the wait queue is full. Retry after `Retry-After` seconds.",
+      kinds: [RENDER_ERROR_KIND.busy],
+      properties: { retryAfterSeconds: { type: "integer" } },
+      required: ["retryAfterSeconds"],
+    }),
+    415: errorSchema({
+      description: "The content type is not supported, for example `application/xml`. Send `application/json`.",
+      kinds: [RENDER_ERROR_KIND.invalidInput],
+      properties: { message: { type: "string" } },
+    }),
+    422: errorSchema({
+      description: "The template does not compile. Each diagnostic has the location and Typst's hints.",
+      kinds: [RENDER_ERROR_KIND.compileFailed],
+      properties: { diagnostics: { type: "array", items: { $ref: "Diagnostic#" } } },
+      required: ["diagnostics"],
+    }),
+    500: errorSchema({
+      description: "Unexpected server error. No internal details are returned.",
+      kinds: [HTTP_ERROR_KIND.internal],
+      properties: { message: { type: "string" } },
     }),
   },
 } as const;
@@ -226,6 +247,10 @@ export const healthRouteSchema = {
   },
 } as const;
 
+/**
+ * The top of the OpenAPI document: title, version, servers, security, and tags.
+ * No `as const`: the @fastify/swagger types need mutable arrays.
+ */
 export const openapiInfo = {
   openapi: "3.1.0",
   info: {

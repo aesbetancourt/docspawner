@@ -4,7 +4,7 @@ Status: accepted
 
 We first generated PDFs with Puppeteer: render HTML in headless Chromium, then print to PDF. It was very slow and expensive in CPU, memory, and time per document. docspawner uses Typst, a typesetting engine that compiles markup straight to PDF with no browser.
 
-The example 2-page invoice renders in about 19 ms (p50) on a laptop, including the process start (`pnpm bench`).
+A plain 2-page invoice, with no packages, rendered in about 19 ms (p50) on a laptop, including the process start (`pnpm bench`). The current example invoice uses packages (ADR-0012) and takes about 100 ms.
 
 ## Considered options
 

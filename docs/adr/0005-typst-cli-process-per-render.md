@@ -4,7 +4,7 @@ Status: accepted
 
 The `TypstCompiler` adapter writes `main.typ` and `data.json` to a new temp folder, runs the `typst` binary, and reads the PDF. We do not embed Typst as a library.
 
-A separate process gives isolation that an embedded compiler does not: on timeout we kill the process, a crash cannot take down the server, and memory is returned to the OS after each render. The cost is a process start per render. The example invoice still renders in about 19 ms (p50).
+A separate process gives isolation that an embedded compiler does not: on timeout we kill the process, a crash cannot take down the server, and memory is returned to the OS after each render. The cost is a process start per render. A plain invoice with no packages still rendered in about 19 ms (p50).
 
 ## Considered options
 

@@ -12,6 +12,7 @@ Customer: #data.customer
 `;
 const DATA = { number: "INV-001", customer: "Ana" };
 
+/** The SHA-256 of a PDF, to compare two renders byte for byte. */
 const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 
 describe("render with the real Typst CLI", () => {

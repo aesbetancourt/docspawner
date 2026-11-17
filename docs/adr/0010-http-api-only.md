@@ -6,4 +6,4 @@ docspawner had two inbound adapters: HTTP (Fastify) and an MCP server for AI age
 
 Agents can still use docspawner: any agent that can make an HTTP request can call `POST /render`. The `422` response returns the same structured diagnostics, with line, column, and hints.
 
-The core does not change. An MCP adapter can be added again later as a new package that calls `RenderDocument`, with no change to the core or the HTTP adapter (ADR-0004).
+The core does not change. An MCP adapter can be added again later as a new inbound adapter in `src/adapter/in/mcp/` that calls `RenderDocument`, with no change to the core or the HTTP adapter (ADR-0004).

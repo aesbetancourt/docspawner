@@ -25,7 +25,11 @@ const times: number[] = [];
 let pdfBytes = 0;
 let version = "";
 
-/** Render once and record the time. Warmup runs are not recorded. */
+/**
+ * Render the invoice once and record the time. Warmup runs are not recorded.
+ * @param index - The number of the run, from 0. Runs below `warmup` are warmup runs.
+ * @throws Error when the render fails.
+ */
 async function measure(index: number): Promise<void> {
   const started = performance.now();
   const result = await renderer.render({ template, data, options: { timestamp: 1_763_251_200 } });
@@ -48,6 +52,7 @@ await Array.from({ length: warmup + runs }, (_, index) => index).reduce(
 );
 
 const sorted = times.toSorted((a, b) => a - b);
+/** The p-th percentile of the sorted times, in milliseconds. */
 const pct = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))] ?? 0;
 const mean = sorted.reduce((sum, t) => sum + t, 0) / sorted.length;
 

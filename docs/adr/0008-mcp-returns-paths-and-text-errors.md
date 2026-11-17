@@ -1,6 +1,6 @@
 # MCP tools write the PDF to disk and return text errors
 
-Status: deprecated. The MCP adapter was removed (ADR-0010).
+Status: superseded by ADR-0010. The MCP adapter was removed.
 
 `render_document` writes the PDF to a file and returns its path. It does not return the PDF as base64. Agents such as opencode work with files, and a base64 PDF wastes the agent's context.
 
