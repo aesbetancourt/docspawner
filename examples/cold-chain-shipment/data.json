@@ -1,0 +1,215 @@
+{
+  "company": {
+    "name": "Acme Pharma Distribution",
+    "site": "Central Warehouse",
+    "address": "1 Example Park, Springfield"
+  },
+  "document": {
+    "number": "CCS-2026-04418",
+    "issued": "2026-11-17"
+  },
+  "shipment": {
+    "from": "Central Warehouse, Springfield",
+    "to": "City Hospital Pharmacy, Shelbyville",
+    "carrier": "Example Cold Logistics",
+    "departed": "2026-11-15 08:00",
+    "arrived": "2026-11-16 20:00",
+    "packaging": "Validated passive shipper, 48 h",
+    "logger": "TL-2209-0571"
+  },
+  "items": [
+    {
+      "product": "Influenza vaccine, 0.5 mL pre-filled syringe",
+      "lot": "FLU-26-3381",
+      "expiry": "2027-06-30",
+      "quantity": 400,
+      "unit": "syringes"
+    },
+    {
+      "product": "Hepatitis B vaccine, 1 mL vial",
+      "lot": "HBV-26-0912",
+      "expiry": "2028-01-31",
+      "quantity": 150,
+      "unit": "vials"
+    },
+    {
+      "product": "Insulin glargine 100 U/mL, 3 mL pen",
+      "lot": "INS-26-7740",
+      "expiry": "2027-09-30",
+      "quantity": 220,
+      "unit": "pens"
+    }
+  ],
+  "temperature": {
+    "min": 2,
+    "max": 8,
+    "intervalMinutes": 60,
+    "readings": [
+      {
+        "hour": 0,
+        "celsius": 5.0
+      },
+      {
+        "hour": 1,
+        "celsius": 5.2
+      },
+      {
+        "hour": 2,
+        "celsius": 5.5
+      },
+      {
+        "hour": 3,
+        "celsius": 5.3
+      },
+      {
+        "hour": 4,
+        "celsius": 5.4
+      },
+      {
+        "hour": 5,
+        "celsius": 5.6
+      },
+      {
+        "hour": 6,
+        "celsius": 5.3
+      },
+      {
+        "hour": 7,
+        "celsius": 5.6
+      },
+      {
+        "hour": 8,
+        "celsius": 5.7
+      },
+      {
+        "hour": 9,
+        "celsius": 5.8
+      },
+      {
+        "hour": 10,
+        "celsius": 5.3
+      },
+      {
+        "hour": 11,
+        "celsius": 5.3
+      },
+      {
+        "hour": 12,
+        "celsius": 5.1
+      },
+      {
+        "hour": 13,
+        "celsius": 5.5
+      },
+      {
+        "hour": 14,
+        "celsius": 7.4
+      },
+      {
+        "hour": 15,
+        "celsius": 6.6
+      },
+      {
+        "hour": 16,
+        "celsius": 5.3
+      },
+      {
+        "hour": 17,
+        "celsius": 5.2
+      },
+      {
+        "hour": 18,
+        "celsius": 4.8
+      },
+      {
+        "hour": 19,
+        "celsius": 4.7
+      },
+      {
+        "hour": 20,
+        "celsius": 4.3
+      },
+      {
+        "hour": 21,
+        "celsius": 4.1
+      },
+      {
+        "hour": 22,
+        "celsius": 4.4
+      },
+      {
+        "hour": 23,
+        "celsius": 4.1
+      },
+      {
+        "hour": 24,
+        "celsius": 4.2
+      },
+      {
+        "hour": 25,
+        "celsius": 4.2
+      },
+      {
+        "hour": 26,
+        "celsius": 4.1
+      },
+      {
+        "hour": 27,
+        "celsius": 4.5
+      },
+      {
+        "hour": 28,
+        "celsius": 4.6
+      },
+      {
+        "hour": 29,
+        "celsius": 5.0
+      },
+      {
+        "hour": 30,
+        "celsius": 4.8
+      },
+      {
+        "hour": 31,
+        "celsius": 5.0
+      },
+      {
+        "hour": 32,
+        "celsius": 5.1
+      },
+      {
+        "hour": 33,
+        "celsius": 5.3
+      },
+      {
+        "hour": 34,
+        "celsius": 5.3
+      },
+      {
+        "hour": 35,
+        "celsius": 5.2
+      },
+      {
+        "hour": 36,
+        "celsius": 5.8
+      }
+    ]
+  },
+  "signatures": [
+    {
+      "role": "Dispatched by",
+      "name": "R. Lopez",
+      "date": "2026-11-15"
+    },
+    {
+      "role": "Received by",
+      "name": "K. Tanaka",
+      "date": "2026-11-16"
+    },
+    {
+      "role": "Released by (QA)",
+      "name": "A. Smith",
+      "date": "2026-11-17"
+    }
+  ]
+}

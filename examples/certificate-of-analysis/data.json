@@ -1,0 +1,109 @@
+{
+  "company": {
+    "name": "Acme Pharma Labs",
+    "site": "Quality Control Laboratory, Building 4",
+    "address": "1 Example Park, Springfield"
+  },
+  "document": {
+    "number": "COA-2026-00731",
+    "version": "1.0",
+    "issued": "2026-11-17"
+  },
+  "product": {
+    "name": "Paracetamol 500 mg film-coated tablets",
+    "substance": "Paracetamol (acetaminophen)",
+    "formula": [
+      ["C", 8],
+      ["H", 9],
+      ["N", 1],
+      ["O", 2]
+    ],
+    "molecularWeight": 151.16,
+    "casNumber": "103-90-2",
+    "pharmacopoeia": "Ph. Eur. / USP"
+  },
+  "batch": {
+    "number": "PCM-26-1142",
+    "size": "250,000 tablets",
+    "manufactured": "2026-10-28",
+    "expiry": "2029-10-31",
+    "storage": "Store below 25 °C. Protect from moisture."
+  },
+  "tests": [
+    {
+      "name": "Description",
+      "method": "Visual",
+      "specification": "White, round, film-coated tablets",
+      "result": "Complies",
+      "conforms": true
+    },
+    {
+      "name": "Identification",
+      "method": "IR spectroscopy",
+      "specification": "Matches reference spectrum",
+      "result": "Complies",
+      "conforms": true
+    },
+    {
+      "name": "Assay",
+      "method": "HPLC",
+      "specification": "95.0 – 105.0 % of label claim",
+      "result": "99.6 %",
+      "conforms": true
+    },
+    {
+      "name": "Uniformity of dosage units",
+      "method": "Content uniformity",
+      "specification": "Acceptance value ≤ 15.0",
+      "result": "4.2",
+      "conforms": true
+    },
+    {
+      "name": "Dissolution",
+      "method": "Apparatus 2, 50 rpm",
+      "specification": "Q = 80 % at 30 min",
+      "result": "96 % (min. 92 %)",
+      "conforms": true
+    },
+    {
+      "name": "Related substances: 4-aminophenol",
+      "method": "HPLC",
+      "specification": "≤ 0.10 %",
+      "result": "0.02 %",
+      "conforms": true
+    },
+    {
+      "name": "Water content",
+      "method": "Karl Fischer",
+      "specification": "≤ 3.0 %",
+      "result": "1.4 %",
+      "conforms": true
+    },
+    {
+      "name": "Microbial count (TAMC)",
+      "method": "Plate count",
+      "specification": "≤ 1000 CFU/g",
+      "result": "< 10 CFU/g",
+      "conforms": true
+    }
+  ],
+  "dissolution": {
+    "medium": "Phosphate buffer pH 5.8, 900 mL, 37 °C",
+    "limit": { "minutes": 30, "percent": 80 },
+    "points": [
+      { "minutes": 0, "percent": 0 },
+      { "minutes": 5, "percent": 38 },
+      { "minutes": 10, "percent": 62 },
+      { "minutes": 15, "percent": 79 },
+      { "minutes": 20, "percent": 88 },
+      { "minutes": 30, "percent": 96 },
+      { "minutes": 45, "percent": 99 }
+    ]
+  },
+  "conclusion": "The batch complies with all specifications and is released for distribution.",
+  "approvals": [
+    { "role": "Analyst", "name": "J. Doe", "date": "2026-11-14" },
+    { "role": "QC Reviewer", "name": "M. Rossi", "date": "2026-11-15" },
+    { "role": "Qualified Person", "name": "A. Smith", "date": "2026-11-17" }
+  ]
+}

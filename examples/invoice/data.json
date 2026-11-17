@@ -1,0 +1,219 @@
+{
+  "number": "INV-2026-0042",
+  "date": "2026-11-16",
+  "dueDate": "2026-12-16",
+  "currency": "USD",
+  "taxRate": 0.16,
+  "seller": {
+    "name": "Acme Studio",
+    "address": "12 Example Street, Springfield",
+    "email": "billing@example.com"
+  },
+  "customer": {
+    "name": "Globex Corporation",
+    "address": "500 Market Avenue, Shelbyville"
+  },
+  "items": [
+    {
+      "description": "Load testing (week 1)",
+      "quantity": 3,
+      "unitPrice": 90
+    },
+    {
+      "description": "Backend development (week 2)",
+      "quantity": 2,
+      "unitPrice": 120
+    },
+    {
+      "description": "API design review (week 3)",
+      "quantity": 6,
+      "unitPrice": 120
+    },
+    {
+      "description": "Backend development (week 4)",
+      "quantity": 9,
+      "unitPrice": 60
+    },
+    {
+      "description": "Backend development (week 5)",
+      "quantity": 2,
+      "unitPrice": 90
+    },
+    {
+      "description": "Security review (week 6)",
+      "quantity": 2,
+      "unitPrice": 60
+    },
+    {
+      "description": "API design review (week 7)",
+      "quantity": 9,
+      "unitPrice": 90
+    },
+    {
+      "description": "Backend development (week 8)",
+      "quantity": 10,
+      "unitPrice": 45
+    },
+    {
+      "description": "Code review (week 9)",
+      "quantity": 11,
+      "unitPrice": 120
+    },
+    {
+      "description": "Backend development (week 10)",
+      "quantity": 10,
+      "unitPrice": 120
+    },
+    {
+      "description": "Security review (week 11)",
+      "quantity": 1,
+      "unitPrice": 60
+    },
+    {
+      "description": "Backend development (week 12)",
+      "quantity": 9,
+      "unitPrice": 60
+    },
+    {
+      "description": "Infrastructure setup (week 13)",
+      "quantity": 7,
+      "unitPrice": 60
+    },
+    {
+      "description": "Bug fixing (week 14)",
+      "quantity": 2,
+      "unitPrice": 120
+    },
+    {
+      "description": "Infrastructure setup (week 15)",
+      "quantity": 9,
+      "unitPrice": 60
+    },
+    {
+      "description": "API design review (week 16)",
+      "quantity": 10,
+      "unitPrice": 120
+    },
+    {
+      "description": "Code review (week 17)",
+      "quantity": 6,
+      "unitPrice": 45
+    },
+    {
+      "description": "Bug fixing (week 18)",
+      "quantity": 12,
+      "unitPrice": 45
+    },
+    {
+      "description": "Pairing session (week 19)",
+      "quantity": 1,
+      "unitPrice": 120
+    },
+    {
+      "description": "Code review (week 20)",
+      "quantity": 8,
+      "unitPrice": 120
+    },
+    {
+      "description": "Security review (week 21)",
+      "quantity": 6,
+      "unitPrice": 90
+    },
+    {
+      "description": "Pairing session (week 22)",
+      "quantity": 8,
+      "unitPrice": 75
+    },
+    {
+      "description": "Infrastructure setup (week 23)",
+      "quantity": 4,
+      "unitPrice": 60
+    },
+    {
+      "description": "Code review (week 24)",
+      "quantity": 2,
+      "unitPrice": 120
+    },
+    {
+      "description": "Infrastructure setup (week 25)",
+      "quantity": 9,
+      "unitPrice": 90
+    },
+    {
+      "description": "Load testing (week 26)",
+      "quantity": 12,
+      "unitPrice": 90
+    },
+    {
+      "description": "Infrastructure setup (week 27)",
+      "quantity": 10,
+      "unitPrice": 45
+    },
+    {
+      "description": "API design review (week 28)",
+      "quantity": 9,
+      "unitPrice": 90
+    },
+    {
+      "description": "Typst template work (week 29)",
+      "quantity": 6,
+      "unitPrice": 60
+    },
+    {
+      "description": "Documentation (week 30)",
+      "quantity": 7,
+      "unitPrice": 45
+    },
+    {
+      "description": "API design review (week 31)",
+      "quantity": 9,
+      "unitPrice": 120
+    },
+    {
+      "description": "Load testing (week 32)",
+      "quantity": 6,
+      "unitPrice": 75
+    },
+    {
+      "description": "Pairing session (week 33)",
+      "quantity": 8,
+      "unitPrice": 120
+    },
+    {
+      "description": "Documentation (week 34)",
+      "quantity": 2,
+      "unitPrice": 45
+    },
+    {
+      "description": "Infrastructure setup (week 35)",
+      "quantity": 8,
+      "unitPrice": 45
+    },
+    {
+      "description": "Backend development (week 36)",
+      "quantity": 12,
+      "unitPrice": 75
+    },
+    {
+      "description": "Pairing session (week 37)",
+      "quantity": 11,
+      "unitPrice": 90
+    },
+    {
+      "description": "Infrastructure setup (week 38)",
+      "quantity": 12,
+      "unitPrice": 90
+    },
+    {
+      "description": "Load testing (week 39)",
+      "quantity": 1,
+      "unitPrice": 90
+    },
+    {
+      "description": "Load testing (week 40)",
+      "quantity": 3,
+      "unitPrice": 120
+    }
+  ],
+  "notes": "Payment by bank transfer within 30 days. Thank you for your business."
+}
