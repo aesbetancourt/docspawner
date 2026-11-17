@@ -2,7 +2,7 @@
 // It reads the settings, creates the adapters, connects them to the core, and starts the worker.
 import { buildApp } from "./adapter/in/http/app.js";
 import { systemClock } from "./adapter/out/clock/system-clock.js";
-import { TypstCliCompiler } from "./adapter/out/typst/typst-cli-compiler.js";
+import { TypstCliCompiler, type TypstCliOptions } from "./adapter/out/typst/typst-cli-compiler.js";
 import { RenderSlots } from "./application/service/render-slots.js";
 import { createRenderService } from "./application/service/render-service.js";
 import { loadConfig, type ServerConfig } from "./config.js";
@@ -27,7 +27,11 @@ try {
 }
 
 // 2. Create the driven adapter for Typst. Stop if the Typst binary does not run.
-const compiler = new TypstCliCompiler({ binary: config.typstBinary, fontPaths: config.fontPaths });
+const typstOptions: TypstCliOptions = { binary: config.typstBinary, fontPaths: config.fontPaths };
+if (config.packagePath) {
+  typstOptions.packagePath = config.packagePath;
+}
+const compiler = new TypstCliCompiler(typstOptions);
 let typstVersion: string;
 try {
   typstVersion = await compiler.version();

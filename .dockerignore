@@ -8,3 +8,4 @@ examples
 scripts
 *.md
 *.pdf
+typst-packages/preview

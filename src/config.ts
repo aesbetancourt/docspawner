@@ -10,6 +10,7 @@ const envSchema = z.object({
   TYPST_BIN: z.string().min(1).default("typst"),
   DOCSPAWNER_MAX_CONCURRENT_RENDERS: z.coerce.number().int().min(1).default(availableParallelism()),
   DOCSPAWNER_MAX_QUEUED_RENDERS: z.coerce.number().int().min(0).default(100),
+  DOCSPAWNER_PACKAGE_PATH: z.string().min(1).optional(),
   DOCSPAWNER_FONT_PATHS: z
     .string()
     .optional()
@@ -22,6 +23,8 @@ export interface ServerConfig {
   logLevel: (typeof LOG_LEVELS)[number];
   typstBinary: string;
   fontPaths: string[];
+  /** Folder with the pre-installed Typst packages from the allowlist (ADR-0012). */
+  packagePath: string | undefined;
   maxConcurrentRenders: number;
   maxQueuedRenders: number;
 }
@@ -46,6 +49,7 @@ export function loadConfig(env: Record<string, string | undefined>): ServerConfi
     logLevel: values.LOG_LEVEL,
     typstBinary: values.TYPST_BIN,
     fontPaths: values.DOCSPAWNER_FONT_PATHS,
+    packagePath: values.DOCSPAWNER_PACKAGE_PATH,
     maxConcurrentRenders: values.DOCSPAWNER_MAX_CONCURRENT_RENDERS,
     maxQueuedRenders: values.DOCSPAWNER_MAX_QUEUED_RENDERS,
   };

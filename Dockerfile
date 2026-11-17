@@ -24,6 +24,12 @@ RUN apt-get update \
  && install -m 0755 "/tmp/typst-${arch}-unknown-linux-musl/typst" /usr/local/bin/typst \
  && typst --version
 
+# The allowlisted Typst packages, installed once at build time. The worker renders offline (ADR-0012).
+COPY typst-packages/allowlist.typ /tmp/allowlist/allowlist.typ
+RUN typst compile --root /tmp/allowlist --package-cache-path /opt/typst-packages \
+      /tmp/allowlist/allowlist.typ /tmp/allowlist/out.pdf \
+ && rm -rf /tmp/allowlist
+
 # --- Build: compile TypeScript ----------------------------------------------
 FROM ${NODE_IMAGE} AS build
 RUN npm install -g pnpm@12.4.2
@@ -43,13 +49,15 @@ RUN pnpm install --frozen-lockfile --prod
 # --- Runtime: Node, the Typst binary, and the built worker. No build tools. ---
 FROM ${NODE_IMAGE} AS runtime
 COPY --from=typst /usr/local/bin/typst /usr/local/bin/typst
+COPY --from=typst /opt/typst-packages /opt/typst-packages
 WORKDIR /app
 COPY --from=deps --chown=node:node /src/node_modules ./node_modules
 COPY --from=build --chown=node:node /src/dist ./dist
 COPY --chown=node:node package.json ./
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
-    PORT=3000
+    PORT=3000 \
+    DOCSPAWNER_PACKAGE_PATH=/opt/typst-packages
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \

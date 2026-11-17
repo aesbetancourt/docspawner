@@ -10,6 +10,7 @@ describe("loadConfig", () => {
       logLevel: "info",
       typstBinary: "typst",
       fontPaths: [],
+      packagePath: undefined,
       maxConcurrentRenders: availableParallelism(),
       maxQueuedRenders: 100,
     });
@@ -23,6 +24,7 @@ describe("loadConfig", () => {
         LOG_LEVEL: "warn",
         TYPST_BIN: "/usr/local/bin/typst",
         DOCSPAWNER_FONT_PATHS: "/fonts/a:/fonts/b",
+        DOCSPAWNER_PACKAGE_PATH: "/opt/typst-packages",
         DOCSPAWNER_MAX_CONCURRENT_RENDERS: "2",
         DOCSPAWNER_MAX_QUEUED_RENDERS: "0",
       }),
@@ -32,6 +34,7 @@ describe("loadConfig", () => {
       logLevel: "warn",
       typstBinary: "/usr/local/bin/typst",
       fontPaths: ["/fonts/a", "/fonts/b"],
+      packagePath: "/opt/typst-packages",
       maxConcurrentRenders: 2,
       maxQueuedRenders: 0,
     });

@@ -10,3 +10,7 @@ coverage/
 
 # Archify delivery receipts hold local paths
 docs/architecture/*.delivery.json
+
+# Installed Typst packages (pnpm packages); only the allowlist is versioned
+typst-packages/*
+!typst-packages/allowlist.typ

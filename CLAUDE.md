@@ -99,13 +99,19 @@ Edit `DEFAULT_LIMITS` in `src/domain/render.ts`. The API schema and the OpenAPI 
 2. Add a test in `test/config.test.ts`.
 3. Add it to the Configuration table in `README.md`, and to `docker-compose.yml` if the container needs it.
 
+### Adding a Typst package
+
+1. Add `#import "@preview/<name>:<exact version>"` to `typst-packages/allowlist.typ`.
+2. Run `pnpm packages`. The Docker build installs the same allowlist.
+3. Add the package to the table in ADR-0012 and in the README.
+
 ### Adding an example
 
 Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/examples.test.ts` picks it up. Add a row to the Examples table in `README.md`.
 
 ## Typst gotchas
 
-- Templates must not use `@preview` packages: the worker blocks downloads (ADR-0007). Draw charts and diagrams with built-in shapes.
+- Templates may import only the packages in `typst-packages/allowlist.typ` (ADR-0012). The worker blocks every download at render time. Run `pnpm packages` after a fresh clone; `pnpm test` runs it first.
 - In markup, a `#let` line ends at the newline. Wrap a multi-line expression in `{ }`.
 - Typst prints 0-based columns. `typst-diagnostics.ts` converts them to 1-based.
 - System fonts are ignored for deterministic output. Only fonts embedded in Typst are available.
