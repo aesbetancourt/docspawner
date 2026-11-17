@@ -117,7 +117,7 @@ Response headers on `200`: `x-typst-version`, `x-render-duration-ms`, `x-typst-w
 
 ### `GET /health`
 
-Returns `{ "status": "ok", "typstVersion": "0.15.1" }`. The server checks Typst at startup and does not start without it.
+Returns `{ "status": "ok", "typstVersion": "0.15.1", "renders": { ... } }`. The worker checks Typst at startup and does not start without it.
 
 ### API documentation
 
@@ -129,7 +129,7 @@ Returns `{ "status": "ok", "typstVersion": "0.15.1" }`. The server checks Typst 
 
 ## Configuration
 
-Environment variables. The server checks them at startup and lists every invalid one.
+Environment variables. The worker checks them at startup and lists every invalid one.
 
 | Variable                            | Default        | Description                                                               |
 | ----------------------------------- | -------------- | ------------------------------------------------------------------------- |
@@ -273,7 +273,7 @@ Requirements: Node 24 (see `.nvmrc`), pnpm, and Typst 0.15.1 on `PATH`.
 
 ```sh
 pnpm install
-pnpm start         # build and start the server on :3000
+pnpm start         # build and start the worker on :3000
 pnpm check         # everything CI runs
 ```
 
@@ -295,3 +295,7 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs `pnpm check` an
 ## Scope
 
 docspawner does one thing. Out of scope by design: template storage and versioning, authentication, an editor, async jobs, multi-file templates, and an MCP server.
+
+## License
+
+[MIT](LICENSE)

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Stateless HTTP worker that renders a Typst template and JSON data to a PDF.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
