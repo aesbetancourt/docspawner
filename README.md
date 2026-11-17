@@ -1,6 +1,6 @@
 # docspawner
 
-[![CI](https://github.com/aesbetancourt/docspawner/actions/workflows/ci.yml/badge.svg)](https://github.com/aesbetancourt/docspawner/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Turn a Typst template and JSON data into a PDF with one HTTP call.**
 
@@ -278,23 +278,23 @@ Requirements: Node 24 (see `.nvmrc`), pnpm, and Typst 0.15.1 on `PATH`.
 ```sh
 pnpm install
 pnpm start         # build and start the worker on :3000
-pnpm check         # everything CI runs
+pnpm check         # every check in one command
 ```
 
-| Command                             | Purpose                                                                                 |
-| ----------------------------------- | --------------------------------------------------------------------------------------- |
-| `pnpm check`                        | Everything CI runs: format, lint, unused code, types, tests with coverage, OpenAPI file |
-| `pnpm test` / `pnpm test:coverage`  | Unit, adapter, architecture, example, and end-to-end tests (real Typst)                 |
-| `pnpm format` / `pnpm format:check` | Format with oxfmt / check the format                                                    |
-| `pnpm lint`                         | Type-aware oxlint. Warnings fail, and lint-suppression comments fail.                   |
-| `pnpm knip`                         | Find unused files, exports, and dependencies                                            |
-| `pnpm typecheck`                    | Type check                                                                              |
-| `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                          |
-| `pnpm bench` / `pnpm load`          | Measure render time / load-test a running worker                                        |
+| Command                             | Purpose                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| `pnpm check`                        | Every check: format, lint, unused code, types, tests with coverage, OpenAPI file |
+| `pnpm test` / `pnpm test:coverage`  | Unit, adapter, architecture, example, and end-to-end tests (real Typst)          |
+| `pnpm format` / `pnpm format:check` | Format with oxfmt / check the format                                             |
+| `pnpm lint`                         | Type-aware oxlint. Warnings fail, and lint-suppression comments fail.            |
+| `pnpm knip`                         | Find unused files, exports, and dependencies                                     |
+| `pnpm typecheck`                    | Type check                                                                       |
+| `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                   |
+| `pnpm bench` / `pnpm load`          | Measure render time / load-test a running worker                                 |
 
 Code standards for contributors and AI agents are in [`CLAUDE.md`](CLAUDE.md).
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs `pnpm check` and builds the Docker image.
+`pnpm check` runs every check above in one command.
 
 ## Scope
 

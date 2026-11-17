@@ -72,7 +72,7 @@ Expected failures are values, not exceptions: return `{ ok: false, error }` with
 pnpm check   # format:check, lint, knip, typecheck, test:coverage, openapi:check
 ```
 
-All checks must pass before a change is complete. CI runs the same command and builds the Docker image.
+All checks must pass before a change is complete.
 
 ## Common tasks
 
