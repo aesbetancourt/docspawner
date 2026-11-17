@@ -6,7 +6,7 @@
 
 docspawner is a stateless PDF rendering worker. Your service sends the template and the data. docspawner returns the PDF, or an error that says exactly what to fix. It stores nothing, so you can run as many copies as you need.
 
-- **Fast:** about 20 ms for a 2-page invoice. No headless browser.
+- **Fast:** about 100 ms for a 3-page invoice with a chart and a payment QR code. No headless browser.
 - **Predictable:** the same template, data, and timestamp give the same PDF bytes.
 - **Safe for untrusted templates:** compile timeout, size limits, an isolated folder per render, no network access.
 - **Clear errors:** compile errors come with line, column, and Typst's hints.
@@ -32,11 +32,24 @@ curl -s localhost:3000/render \
   -o hello.pdf
 ```
 
-Or render one of the examples (needs `jq`):
+Or render every example and see the metrics (needs `jq`):
 
 ```sh
-examples/render.sh certificate-of-analysis
-# Saved examples/certificate-of-analysis/certificate-of-analysis.pdf
+examples/render.sh
+```
+
+```text
+Document                  Pages     Size Worker ms (min/avg/max) Round trip  Warn  SHA-256
+batch-release-dossier         5   210 KB      553 / 560 / 566     562 ms     0  3b31a55767fa
+certificate-of-analysis       2   148 KB      325 / 326 / 328     328 ms     0  4c04770c6b24
+cold-chain-shipment           2    80 KB      238 / 253 / 285     255 ms     0  d7e9b4c77b7a
+invoice                       3   101 KB      117 / 118 / 120     120 ms     0  3e142366f93d
+
+Invoice under load: 20 requests from 4 parallel clients
+  Throughput   8.0 invoices/s · 24.0 pages/s · 2.5 s for the batch
+  Round trip   p50 482 ms · p95 515 ms · max 523 ms
+  Worker       peak 1 of 1 slots busy · peak 3 queued
+  Results      20 of 20 ok
 ```
 
 Then open the API documentation at <http://localhost:3000/docs>.
@@ -64,12 +77,12 @@ Each example is a folder with `template.typ` and `data.json`: exactly what you s
 
 | Example                                                         | What it shows                                                                                                                                                                                                                                                                                                                                                              |
 | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`certificate-of-analysis/`](examples/certificate-of-analysis/) | A pharmaceutical Certificate of Analysis: product and batch data, the chemical formula with subscripts, the **molecular structure** of paracetamol and a **dissolution-profile chart**, both drawn with built-in Typst shapes, a test-results table with pass/fail, and QA approvals                                                                                       |
+| [`certificate-of-analysis/`](examples/certificate-of-analysis/) | A 2-page pharmaceutical Certificate of Analysis: the paracetamol structure (`alchemist`), an HPLC chromatogram computed from peak data and a 12-vessel dissolution chart (`lilaq`), assay replicates with RSD, test results with pass/fail, and GS1 DataMatrix and verification QR codes (`tiaoma`)                                                                        |
 | [`batch-release-dossier/`](examples/batch-release-dossier/)     | A 5-page pharmaceutical batch release dossier: GS1 DataMatrix and QR codes (`tiaoma`), the ibuprofen skeletal formula (`alchemist`), a process-flow diagram (`fletcher`), charts with error bars, fitted lines and a heat map (`lilaq`), and calculations in the template: content-uniformity acceptance value, dissolution f2, stability regression, and GS1 check digits |
-| [`cold-chain-shipment/`](examples/cold-chain-shipment/)         | A cold-chain shipment report for vaccines and insulin: contents table, a **temperature chart** with the allowed 2–8 °C range, statistics computed in the template (minimum, maximum, average, **mean kinetic temperature**), and a release decision that switches to quarantine if any reading leaves the range                                                            |
-| [`invoice/`](examples/invoice/)                                 | A 2-page invoice: a table whose header repeats on each page, computed totals, page numbers                                                                                                                                                                                                                                                                                 |
+| [`cold-chain-shipment/`](examples/cold-chain-shipment/)         | A 2-page cold-chain report for vaccines and insulin: the route with temperatures per leg (`fletcher`), a 3-sensor temperature chart and a histogram (`lilaq`), **mean kinetic temperature** per sensor, SSCC pallet barcodes (`tiaoma`), and a release decision that switches to quarantine if any reading leaves 2–8 °C                                                   |
+| [`invoice/`](examples/invoice/)                                 | A 3-page invoice with 42 items: line items grouped by category with subtotals, VAT per rate, due and early-payment dates, a spend chart (`lilaq`), and a SEPA payment QR code (EPC GiroCode, `tiaoma`)                                                                                                                                                                     |
 
-Run `examples/render.sh <example>` against a running worker. It saves the PDF in the example's folder, for example `examples/invoice/invoice.pdf`. If the request fails, it prints the error and writes no file. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`. The batch release dossier imports allowlisted packages; the other examples use only built-in Typst.
+Run `examples/render.sh [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]` against a running worker. With no example, it renders all of them. It saves each PDF in the example's folder, for example `examples/invoice/invoice.pdf`. For each document, it reports pages, size, the time in the worker (`x-render-duration-ms`), the round trip, warnings, and a SHA-256 prefix. When the invoice is selected, it also sends `REQUESTS` invoices (default 20) from `CLIENTS` parallel clients (default 4). It then reports throughput, p50 and p95 latency, and the peak use of render slots and the queue from `/health`. The script exits with `1` if a render fails. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`.
 
 ## API
 
@@ -183,26 +196,26 @@ To size a deployment: one render slot per CPU, and enough copies that the queue 
 
 ## Performance
 
-`pnpm bench` renders the example invoice (40 items, 2 pages) through the render service, without HTTP, on an Apple Silicon laptop with Typst 0.15.1:
+`pnpm bench` renders the example invoice (42 items, 3 pages, with `lilaq` and `tiaoma`) through the render service, without HTTP, on an Apple Silicon laptop with Typst 0.15.1:
 
-| Runs            | p50          | p95          | PDF size |
-| --------------- | ------------ | ------------ | -------- |
-| 3 × 100 renders | 18.4–19.5 ms | 19.8–20.7 ms | 58.9 KiB |
+| Runs            | p50       | p95        | PDF size  |
+| --------------- | --------- | ---------- | --------- |
+| 3 × 100 renders | 97–104 ms | 100–116 ms | 100.6 KiB |
 
-Each render includes the start of a new Typst process.
+Each render includes the start of a new Typst process and the load of the packages. A plain invoice without packages renders in about 20 ms.
 
 ### As a worker
 
 Measured with `pnpm load` against the Docker image with `docker-compose.yml` settings: 1 CPU, 512 MB, 1 render slot.
 
-| Test                                               | Result                                           |
-| -------------------------------------------------- | ------------------------------------------------ |
-| Example invoice, 200 requests, 1 at a time         | 63 PDF/s · p50 16 ms · p95 18 ms                 |
-| Example invoice, 200 requests, 64 at a time        | 60 PDF/s · p50 1043 ms · p95 1131 ms · all `200` |
-| Burst of 80 heavy renders (~200 ms each) at once   | 80 of 80 succeed in 14 s                         |
-| Burst of 200 heavy renders, queue of 100           | 101 succeed, 99 get `503` with `Retry-After`     |
-| `docker compose stop` with 1 running and 22 queued | All 30 requests finish with `200`, stop in 4 s   |
-| Peak memory under load                             | under 100 MiB                                    |
+| Test                                               | Result                                         |
+| -------------------------------------------------- | ---------------------------------------------- |
+| Example invoice, 100 requests, 1 at a time         | 7.5 PDF/s · p50 133 ms · p95 149 ms            |
+| Example invoice, 100 requests, 64 at a time        | 7.7 PDF/s · p50 6.7 s · p95 8.3 s · all `200`  |
+| Burst of 80 heavy renders (~200 ms each) at once   | 80 of 80 succeed in 14 s                       |
+| Burst of 200 heavy renders, queue of 100           | 101 succeed, 99 get `503` with `Retry-After`   |
+| `docker compose stop` with 1 running and 22 queued | All 30 requests finish with `200`, stop in 4 s |
+| Peak memory under load                             | under 100 MiB                                  |
 
 Without the render queue, the same burst of 80 heavy renders failed 72 of 80 with `408`: every render shared one CPU and reached the timeout. See [ADR-0011](docs/adr/0011-bounded-render-queue.md).
 
