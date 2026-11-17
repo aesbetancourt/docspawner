@@ -1,0 +1,44 @@
+{
+  "name": "docspawner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stateless HTTP worker that renders a Typst template and JSON data to a PDF.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "pnpm build && node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --type-aware --deny-warnings && pnpm lint:suppressions",
+    "lint:suppressions": "! grep -rnE '(eslint|oxlint)-disable' src test scripts",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "knip": "knip",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "openapi": "pnpm build && node scripts/export-openapi.ts docs/openapi.json",
+    "openapi:check": "pnpm build && node scripts/export-openapi.ts docs/openapi.json --check",
+    "bench": "pnpm build && node scripts/bench.ts",
+    "load": "node scripts/load.ts",
+    "check": "pnpm format:check && pnpm lint && pnpm knip && pnpm typecheck && pnpm test:coverage && pnpm openapi:check"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.9.4",
+    "@fastify/swagger-ui": "^6.1.4",
+    "fastify": "^5.12.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "knip": "^6.45.1",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
+    "oxlint-tsgolint": "^7.0.2007",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.4.2"
+}

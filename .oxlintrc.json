@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "node", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "rules": {
+    "no-ternary": "error",
+    "max-params": ["error", { "max": 7 }],
+    "complexity": ["error", { "max": 15 }],
+    "typescript/no-redundant-type-constituents": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/no-floating-promises": "error",
+    "vitest/prefer-to-have-length": "error"
+  },
+  "env": {
+    "builtin": true,
+    "node": true
+  },
+  "ignorePatterns": ["**/dist/**"]
+}
