@@ -6,3 +6,4 @@ dist/
 # Rendered output
 *.pdf
 coverage/
+.archify/
