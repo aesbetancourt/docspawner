@@ -207,6 +207,8 @@ Without the render queue, the same burst of 80 heavy renders failed 72 of 80 wit
 
 docspawner uses **hexagonal architecture** (ports and adapters), with the standard layout from Tom Hombergs' _Get Your Hands Dirty on Clean Architecture_. The full explanation is in [ADR-0004](docs/adr/0004-ports-and-adapters.md).
 
+**Interactive architecture diagram:** <https://aesbetancourt.github.io/docspawner/>. Its source is [`docs/architecture/architecture.json`](docs/architecture/architecture.json), drawn with Archify.
+
 One rule organizes the folders: **`in` means someone calls us. `out` means we call someone.**
 
 ```

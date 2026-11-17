@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "docspawner: hexagonal architecture",
+    "output": "docs/architecture/index.html",
+    "quality_profile": "showcase",
+    "locale": "en",
+    "legend": {
+      "entries": {
+        "external": {
+          "label": "Outside world"
+        },
+        "frontend": {
+          "label": "Driving adapter (in)"
+        },
+        "security": {
+          "label": "Port (interface the core owns)"
+        },
+        "backend": {
+          "label": "Service (core logic)"
+        },
+        "database": {
+          "label": "Domain (data)"
+        },
+        "cloud": {
+          "label": "Driven adapter (out)"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "caller",
+      "type": "external",
+      "label": "Caller",
+      "sublabel": "any service \u00b7 JSON over HTTP",
+      "pos": [40, 60],
+      "size": [190, 84]
+    },
+    {
+      "id": "http",
+      "type": "frontend",
+      "label": "HTTP adapter",
+      "sublabel": "Fastify \u00b7 JSON Schema \u00b7 Swagger",
+      "tag": "adapter/in/http",
+      "pos": [40, 260],
+      "size": [190, 84]
+    },
+    {
+      "id": "portin",
+      "type": "security",
+      "label": "RenderDocument",
+      "sublabel": "render(request)",
+      "tag": "port/in",
+      "pos": [315, 260],
+      "size": [170, 84]
+    },
+    {
+      "id": "service",
+      "type": "backend",
+      "label": "Render service",
+      "sublabel": "the use case",
+      "tag": "service",
+      "pos": [580, 260],
+      "size": [180, 84]
+    },
+    {
+      "id": "validate",
+      "type": "backend",
+      "label": "Input check",
+      "sublabel": "Zod \u00b7 size limits",
+      "tag": "service",
+      "pos": [580, 70],
+      "size": [180, 84]
+    },
+    {
+      "id": "slots",
+      "type": "backend",
+      "label": "Render slots",
+      "sublabel": "N at once \u00b7 bounded queue",
+      "tag": "service",
+      "pos": [580, 450],
+      "size": [180, 84]
+    },
+    {
+      "id": "domain",
+      "type": "database",
+      "label": "Domain",
+      "sublabel": "request \u00b7 result \u00b7 errors \u00b7 limits",
+      "tag": "domain",
+      "pos": [295, 560],
+      "size": [210, 84]
+    },
+    {
+      "id": "compiler",
+      "type": "security",
+      "label": "TypstCompiler",
+      "sublabel": "compile(job)",
+      "tag": "port/out",
+      "pos": [855, 170],
+      "size": [170, 84]
+    },
+    {
+      "id": "clockport",
+      "type": "security",
+      "label": "Clock",
+      "sublabel": "now()",
+      "tag": "port/out",
+      "pos": [855, 370],
+      "size": [170, 84]
+    },
+    {
+      "id": "typstcli",
+      "type": "cloud",
+      "icon": "backend",
+      "label": "Typst CLI adapter",
+      "sublabel": "temp folder \u00b7 timeout \u00b7 no network",
+      "tag": "adapter/out/typst",
+      "pos": [1125, 170],
+      "size": [200, 84]
+    },
+    {
+      "id": "clock",
+      "type": "cloud",
+      "icon": "clock",
+      "label": "System clock",
+      "sublabel": "real time",
+      "tag": "adapter/out/clock",
+      "pos": [1125, 370],
+      "size": [200, 84]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "adapter/in \u00b7 driving",
+      "wraps": ["http"]
+    },
+    {
+      "kind": "region",
+      "label": "core \u00b7 application + domain \u00b7 no I/O",
+      "wraps": ["portin", "service", "validate", "slots", "domain", "compiler", "clockport"]
+    },
+    {
+      "kind": "region",
+      "label": "adapter/out \u00b7 driven",
+      "wraps": ["typstcli", "clock"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "request",
+      "from": "caller",
+      "to": "http",
+      "label": "POST /render",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "call-in",
+      "from": "http",
+      "to": "portin",
+      "label": "render()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "implements-in",
+      "from": "service",
+      "to": "portin",
+      "label": "implements",
+      "variant": "dashed"
+    },
+    {
+      "id": "check",
+      "from": "service",
+      "to": "validate",
+      "label": "1 check",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "wait",
+      "from": "service",
+      "to": "slots",
+      "label": "2 wait",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "compile",
+      "from": "service",
+      "to": "compiler",
+      "label": "3 compile()",
+      "variant": "emphasis"
+    },
+    {
+      "id": "now",
+      "from": "service",
+      "to": "clockport",
+      "label": "now()"
+    },
+    {
+      "id": "types",
+      "from": "portin",
+      "to": "domain",
+      "label": "uses",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "implements-typst",
+      "from": "typstcli",
+      "to": "compiler",
+      "label": "implements",
+      "variant": "dashed"
+    },
+    {
+      "id": "implements-clock",
+      "from": "clock",
+      "to": "clockport",
+      "label": "implements",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "Dependency rule",
+      "items": [
+        "Every import points into the core.",
+        "Adapters depend on ports; the core never imports an adapter.",
+        "test/architecture.test.ts checks every import."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "in and out",
+      "items": [
+        "in (driving): someone calls us, here HTTP.",
+        "out (driven): we call someone, here Typst and the clock.",
+        "The core owns both kinds of port."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Composition root",
+      "items": [
+        "main.ts creates the adapters and the core and connects them.",
+        "It is the only file that knows every part."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Errors are values",
+      "items": [
+        "The service returns { ok: false, error } for expected failures.",
+        "The HTTP adapter maps each error kind to a status code."
+      ]
+    }
+  ]
+}

@@ -7,3 +7,6 @@ dist/
 *.pdf
 coverage/
 .archify/
+
+# Archify delivery receipts hold local paths
+docs/architecture/*.delivery.json
