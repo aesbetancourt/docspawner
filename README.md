@@ -51,23 +51,25 @@ The template reads its data from the file `data.json`. This is the only rule.
 Customer: #data.customer
 ```
 
-| Available in a template                                                          | Not available                                           |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| All Typst markup and scripting                                                   | Images and other files (one template file only)         |
-| Fonts embedded in Typst: Libertinus Serif, New Computer Modern, DejaVu Sans Mono | System fonts, unless added with `DOCSPAWNER_FONT_PATHS` |
-| `datetime.today()`, set by `options.timestamp`                                   | `@preview` packages from the network                    |
+| Available in a template                                                                                                        | Not available                                           |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| All Typst markup and scripting                                                                                                 | Images and other files (one template file only)         |
+| Fonts embedded in Typst: Libertinus Serif, New Computer Modern, DejaVu Sans Mono                                               | System fonts, unless added with `DOCSPAWNER_FONT_PATHS` |
+| `datetime.today()`, set by `options.timestamp`                                                                                 | Packages outside the allowlist                          |
+| Packages in [`typst-packages/allowlist.typ`](typst-packages/allowlist.typ): `alchemist`, `lilaq`, `fletcher`, `tiaoma`, `zero` | Package downloads while rendering                       |
 
 ## Examples
 
 Each example is a folder with `template.typ` and `data.json`: exactly what you send to `POST /render`. A test renders every example with the real Typst binary.
 
-| Example                                                         | What it shows                                                                                                                                                                                                                                                                                                   |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`certificate-of-analysis/`](examples/certificate-of-analysis/) | A pharmaceutical Certificate of Analysis: product and batch data, the chemical formula with subscripts, the **molecular structure** of paracetamol and a **dissolution-profile chart**, both drawn with built-in Typst shapes, a test-results table with pass/fail, and QA approvals                            |
-| [`cold-chain-shipment/`](examples/cold-chain-shipment/)         | A cold-chain shipment report for vaccines and insulin: contents table, a **temperature chart** with the allowed 2–8 °C range, statistics computed in the template (minimum, maximum, average, **mean kinetic temperature**), and a release decision that switches to quarantine if any reading leaves the range |
-| [`invoice/`](examples/invoice/)                                 | A 2-page invoice: a table whose header repeats on each page, computed totals, page numbers                                                                                                                                                                                                                      |
+| Example                                                         | What it shows                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`certificate-of-analysis/`](examples/certificate-of-analysis/) | A pharmaceutical Certificate of Analysis: product and batch data, the chemical formula with subscripts, the **molecular structure** of paracetamol and a **dissolution-profile chart**, both drawn with built-in Typst shapes, a test-results table with pass/fail, and QA approvals                                                                                       |
+| [`batch-release-dossier/`](examples/batch-release-dossier/)     | A 5-page pharmaceutical batch release dossier: GS1 DataMatrix and QR codes (`tiaoma`), the ibuprofen skeletal formula (`alchemist`), a process-flow diagram (`fletcher`), charts with error bars, fitted lines and a heat map (`lilaq`), and calculations in the template: content-uniformity acceptance value, dissolution f2, stability regression, and GS1 check digits |
+| [`cold-chain-shipment/`](examples/cold-chain-shipment/)         | A cold-chain shipment report for vaccines and insulin: contents table, a **temperature chart** with the allowed 2–8 °C range, statistics computed in the template (minimum, maximum, average, **mean kinetic temperature**), and a release decision that switches to quarantine if any reading leaves the range                                                            |
+| [`invoice/`](examples/invoice/)                                 | A 2-page invoice: a table whose header repeats on each page, computed totals, page numbers                                                                                                                                                                                                                                                                                 |
 
-Run `examples/render.sh <example>` against a running worker. It saves the PDF in the example's folder, for example `examples/invoice/invoice.pdf`. If the request fails, it prints the error and writes no file. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`. The examples use no Typst packages, because the worker blocks package downloads.
+Run `examples/render.sh <example>` against a running worker. It saves the PDF in the example's folder, for example `examples/invoice/invoice.pdf`. If the request fails, it prints the error and writes no file. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`. The batch release dossier imports allowlisted packages; the other examples use only built-in Typst.
 
 ## API
 
@@ -133,15 +135,16 @@ Returns `{ "status": "ok", "typstVersion": "0.15.1", "renders": { ... } }`. The 
 
 Environment variables. The worker checks them at startup and lists every invalid one.
 
-| Variable                            | Default        | Description                                                               |
-| ----------------------------------- | -------------- | ------------------------------------------------------------------------- |
-| `PORT`                              | `3000`         | HTTP port                                                                 |
-| `HOST`                              | `127.0.0.1`    | Bind address. The Docker image uses `0.0.0.0`.                            |
-| `LOG_LEVEL`                         | `info`         | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`              |
-| `TYPST_BIN`                         | `typst`        | Path to the Typst binary                                                  |
-| `DOCSPAWNER_FONT_PATHS`             | none           | Extra font folders, separated by `:`                                      |
-| `DOCSPAWNER_MAX_CONCURRENT_RENDERS` | number of CPUs | Renders that run at the same time. Match it to the CPUs of the container. |
-| `DOCSPAWNER_MAX_QUEUED_RENDERS`     | `100`          | Renders that wait for a free slot. More requests get `503`.               |
+| Variable                            | Default        | Description                                                                              |
+| ----------------------------------- | -------------- | ---------------------------------------------------------------------------------------- |
+| `PORT`                              | `3000`         | HTTP port                                                                                |
+| `HOST`                              | `127.0.0.1`    | Bind address. The Docker image uses `0.0.0.0`.                                           |
+| `LOG_LEVEL`                         | `info`         | `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`                             |
+| `TYPST_BIN`                         | `typst`        | Path to the Typst binary                                                                 |
+| `DOCSPAWNER_FONT_PATHS`             | none           | Extra font folders, separated by `:`                                                     |
+| `DOCSPAWNER_PACKAGE_PATH`           | none           | Folder with the allowlisted Typst packages. The Docker image sets `/opt/typst-packages`. |
+| `DOCSPAWNER_MAX_CONCURRENT_RENDERS` | number of CPUs | Renders that run at the same time. Match it to the CPUs of the container.                |
+| `DOCSPAWNER_MAX_QUEUED_RENDERS`     | `100`          | Renders that wait for a free slot. More requests get `503`.                              |
 
 ## Guarantees and limits
 
@@ -257,19 +260,20 @@ Around the code:
 
 Architecture decision records are in [`docs/adr/`](docs/adr/):
 
-| ADR                                                        | Decision                                               |
-| ---------------------------------------------------------- | ------------------------------------------------------ |
-| [0001](docs/adr/0001-typst-instead-of-headless-browser.md) | Typst instead of a headless browser (Puppeteer)        |
-| [0002](docs/adr/0002-stateless-renderer.md)                | Stateless renderer: the caller sends the full template |
-| [0003](docs/adr/0003-data-contract-data-json.md)           | Data reaches the template as the file `data.json`      |
-| [0004](docs/adr/0004-ports-and-adapters.md)                | Hexagonal architecture (ports and adapters)            |
-| [0005](docs/adr/0005-typst-cli-process-per-render.md)      | Run the Typst CLI as a new process for each render     |
-| [0006](docs/adr/0006-deterministic-output.md)              | Same input, same PDF bytes                             |
-| [0007](docs/adr/0007-contain-untrusted-templates.md)       | Treat every template as untrusted code                 |
-| [0008](docs/adr/0008-mcp-returns-paths-and-text-errors.md) | MCP tools return paths and text errors (deprecated)    |
-| [0009](docs/adr/0009-no-cli-adapter.md)                    | No CLI adapter                                         |
-| [0010](docs/adr/0010-http-api-only.md)                     | HTTP API only: the MCP adapter is removed              |
-| [0011](docs/adr/0011-bounded-render-queue.md)              | A fixed number of render slots and a bounded queue     |
+| ADR                                                        | Decision                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------- |
+| [0001](docs/adr/0001-typst-instead-of-headless-browser.md) | Typst instead of a headless browser (Puppeteer)         |
+| [0002](docs/adr/0002-stateless-renderer.md)                | Stateless renderer: the caller sends the full template  |
+| [0003](docs/adr/0003-data-contract-data-json.md)           | Data reaches the template as the file `data.json`       |
+| [0004](docs/adr/0004-ports-and-adapters.md)                | Hexagonal architecture (ports and adapters)             |
+| [0005](docs/adr/0005-typst-cli-process-per-render.md)      | Run the Typst CLI as a new process for each render      |
+| [0006](docs/adr/0006-deterministic-output.md)              | Same input, same PDF bytes                              |
+| [0007](docs/adr/0007-contain-untrusted-templates.md)       | Treat every template as untrusted code                  |
+| [0008](docs/adr/0008-mcp-returns-paths-and-text-errors.md) | MCP tools return paths and text errors (deprecated)     |
+| [0009](docs/adr/0009-no-cli-adapter.md)                    | No CLI adapter                                          |
+| [0010](docs/adr/0010-http-api-only.md)                     | HTTP API only: the MCP adapter is removed               |
+| [0011](docs/adr/0011-bounded-render-queue.md)              | A fixed number of render slots and a bounded queue      |
+| [0012](docs/adr/0012-allowlisted-typst-packages.md)        | An allowlist of Typst packages, installed at build time |
 
 ## Development
 
@@ -288,6 +292,7 @@ pnpm check         # every check in one command
 | `pnpm format` / `pnpm format:check` | Format with oxfmt / check the format                                             |
 | `pnpm lint`                         | Type-aware oxlint. Warnings fail, and lint-suppression comments fail.            |
 | `pnpm knip`                         | Find unused files, exports, and dependencies                                     |
+| `pnpm packages`                     | Install the allowlisted Typst packages (also runs before `pnpm test`)            |
 | `pnpm typecheck`                    | Type check                                                                       |
 | `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                   |
 | `pnpm bench` / `pnpm load`          | Measure render time / load-test a running worker                                 |

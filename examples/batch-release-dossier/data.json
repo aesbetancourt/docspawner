@@ -1,0 +1,278 @@
+{
+  "company": {
+    "name": "Acme Pharma",
+    "site": "Solid Dose Plant 2",
+    "address": "1 Example Park, Springfield"
+  },
+  "document": {
+    "number": "BRD-2026-0193",
+    "version": "1.0",
+    "issued": "2026-11-17",
+    "status": "Approved"
+  },
+  "product": {
+    "name": "Ibuprofen 400 mg film-coated tablets",
+    "substance": "Ibuprofen",
+    "strength": "400 mg",
+    "form": "Film-coated tablet",
+    "formula": [
+      ["C", 13],
+      ["H", 18],
+      ["O", 2]
+    ],
+    "molarMass": 206.28,
+    "cas": "15687-27-1",
+    "pharmacopoeia": "Ph. Eur. / USP"
+  },
+  "batch": {
+    "number": "IBU-26-0417",
+    "size": "500,000 tablets",
+    "packs": "16,666 packs of 30",
+    "manufactured": "2026-10-20",
+    "expiry": "2029-10-31",
+    "expiryGs1": "291031",
+    "verificationUrl": "https://verify.example.com/IBU-26-0417"
+  },
+  "gs1": {
+    "gtinBody": "0950600013435",
+    "ssccBody": "39506000000000417",
+    "serials": ["7Q2K9X4M1P", "3V8N6T2R5D", "9H4C7W1L8S", "2F6J3Y9B4G", "5Z1D8Q6K3N", "8M3P5V2X7T"]
+  },
+  "process": [
+    {
+      "id": "dispense",
+      "name": "Dispensing",
+      "equipment": "Weighing booth WB-02"
+    },
+    {
+      "id": "granulate",
+      "name": "Wet granulation",
+      "equipment": "High-shear mixer HSM-600"
+    },
+    {
+      "id": "dry",
+      "name": "Fluid-bed drying",
+      "equipment": "Fluid-bed dryer FBD-300"
+    },
+    {
+      "id": "blend",
+      "name": "Milling and blending",
+      "equipment": "Bin blender BB-1000"
+    },
+    {
+      "id": "compress",
+      "name": "Compression",
+      "equipment": "Rotary press RP-45"
+    },
+    {
+      "id": "coat",
+      "name": "Film coating",
+      "equipment": "Pan coater PC-150"
+    },
+    {
+      "id": "pack",
+      "name": "Packaging",
+      "equipment": "Blister line BL-3, serialization"
+    }
+  ],
+  "ipc": [
+    {
+      "step": "Fluid-bed drying",
+      "test": "Loss on drying",
+      "spec": "≤ 2.0 %",
+      "result": "1.3 %",
+      "conforms": true
+    },
+    {
+      "step": "Milling and blending",
+      "test": "Blend uniformity (RSD)",
+      "spec": "≤ 5.0 %",
+      "result": "1.8 %",
+      "conforms": true
+    },
+    {
+      "step": "Compression",
+      "test": "Tablet hardness",
+      "spec": "80 – 140 N",
+      "result": "104 N (mean)",
+      "conforms": true
+    },
+    {
+      "step": "Compression",
+      "test": "Friability",
+      "spec": "≤ 1.0 %",
+      "result": "0.21 %",
+      "conforms": true
+    },
+    {
+      "step": "Film coating",
+      "test": "Weight gain",
+      "spec": "2.5 – 3.5 %",
+      "result": "3.0 %",
+      "conforms": true
+    },
+    {
+      "step": "Packaging",
+      "test": "Blister leak test",
+      "spec": "No leaks",
+      "result": "No leaks",
+      "conforms": true
+    }
+  ],
+  "tests": [
+    {
+      "name": "Assay",
+      "method": "HPLC",
+      "unit": "%",
+      "min": 95.0,
+      "max": 105.0,
+      "result": 99.4,
+      "decimals": 1
+    },
+    {
+      "name": "Water content",
+      "method": "Karl Fischer",
+      "unit": "%",
+      "min": null,
+      "max": 3.0,
+      "result": 1.1,
+      "decimals": 1
+    },
+    {
+      "name": "Disintegration",
+      "method": "Ph. Eur. 2.9.1",
+      "unit": "min",
+      "min": null,
+      "max": 15.0,
+      "result": 6.0,
+      "decimals": 0
+    },
+    {
+      "name": "Impurity J",
+      "method": "HPLC",
+      "unit": "%",
+      "min": null,
+      "max": 0.2,
+      "result": 0.03,
+      "decimals": 2
+    },
+    {
+      "name": "Total impurities",
+      "method": "HPLC",
+      "unit": "%",
+      "min": null,
+      "max": 1.0,
+      "result": 0.09,
+      "decimals": 2
+    },
+    {
+      "name": "Average mass",
+      "method": "Gravimetric",
+      "unit": "mg",
+      "min": 597.0,
+      "max": 633.0,
+      "result": 614.8,
+      "decimals": 1
+    },
+    {
+      "name": "Microbial count (TAMC)",
+      "method": "Ph. Eur. 2.6.12",
+      "unit": "CFU/g",
+      "min": null,
+      "max": 1000,
+      "result": 10,
+      "decimals": 0
+    }
+  ],
+  "uniformity": {
+    "units": [99.6, 98.7, 100.1, 101.4, 101.9, 100.4, 99.6, 99.2, 98.9, 98.1],
+    "k": 2.4,
+    "l1": 15.0
+  },
+  "dissolution": {
+    "medium": "Phosphate buffer pH 7.2, 900 mL, 37 °C, paddle 50 rpm",
+    "times": [5, 10, 15, 20, 30, 45],
+    "test": [
+      [31.9, 31.4, 37.7, 35.3, 37.7, 32.3, 36.0, 35.4, 36.9, 34.9, 37.5, 37.7],
+      [61.9, 54.3, 56.3, 62.1, 64.7, 60.1, 58.3, 61.7, 59.5, 59.5, 62.0, 59.1],
+      [71.7, 74.0, 76.9, 73.6, 76.3, 74.3, 76.7, 74.4, 77.5, 74.7, 73.1, 76.7],
+      [85.8, 85.3, 81.7, 84.0, 87.2, 85.6, 82.4, 87.8, 86.0, 84.9, 84.0, 84.7],
+      [95.1, 88.9, 93.2, 91.2, 95.0, 94.2, 94.1, 94.9, 97.7, 98.1, 91.2, 97.9],
+      [98.8, 94.7, 100.5, 96.7, 97.1, 100.5, 98.1, 98.9, 100.5, 99.3, 92.7, 97.7]
+    ],
+    "reference": [34.0, 58.0, 74.0, 84.0, 93.0, 98.0],
+    "q": {
+      "minutes": 30,
+      "percent": 80
+    }
+  },
+  "stability": {
+    "limit": 95.0,
+    "conditions": [
+      {
+        "name": "25 °C / 60 % RH",
+        "kind": "Long-term",
+        "months": [0, 3, 6, 9, 12, 18, 24],
+        "assay": [99.9, 99.6, 99.4, 99.5, 99.2, 98.6, 98.4]
+      },
+      {
+        "name": "30 °C / 65 % RH",
+        "kind": "Intermediate",
+        "months": [0, 3, 6, 9, 12],
+        "assay": [100.2, 99.7, 99.7, 99.2, 98.7]
+      },
+      {
+        "name": "40 °C / 75 % RH",
+        "kind": "Accelerated",
+        "months": [0, 1, 2, 3, 6],
+        "assay": [100.5, 100.0, 99.4, 99.0, 97.6]
+      }
+    ]
+  },
+  "impurities": {
+    "months": [0, 3, 6, 9, 12, 18, 24],
+    "names": ["Impurity A", "Impurity B", "Impurity J", "Impurity N", "Unspecified (max)"],
+    "values": [
+      [0.016, 0.04, 0.042, 0.042, 0.063, 0.08, 0.1],
+      [0.009, 0.015, 0.021, 0.02, 0.024, 0.034, 0.029],
+      [0.024, 0.039, 0.064, 0.074, 0.085, 0.116, 0.145],
+      [0.001, 0.002, 0.007, 0.01, 0.013, 0.016, 0.017],
+      [0.021, 0.024, 0.03, 0.04, 0.036, 0.051, 0.06]
+    ],
+    "limits": [0.15, 0.15, 0.2, 0.15, 0.1]
+  },
+  "approvals": [
+    {
+      "role": "Production",
+      "name": "R. Lopez",
+      "date": "2026-11-12"
+    },
+    {
+      "role": "Quality Control",
+      "name": "M. Rossi",
+      "date": "2026-11-14"
+    },
+    {
+      "role": "Qualified Person",
+      "name": "A. Smith",
+      "date": "2026-11-17"
+    }
+  ],
+  "auditTrail": [
+    {
+      "time": "2026-11-12 09:14",
+      "user": "r.lopez",
+      "action": "Batch record closed, 0 deviations"
+    },
+    {
+      "time": "2026-11-14 16:02",
+      "user": "m.rossi",
+      "action": "QC results approved"
+    },
+    {
+      "time": "2026-11-17 10:40",
+      "user": "a.smith",
+      "action": "Batch certified and released"
+    }
+  ]
+}
