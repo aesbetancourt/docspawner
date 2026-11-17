@@ -1,0 +1,27 @@
+services:
+  worker:
+    build: .
+    image: docspawner:latest
+    ports:
+      - "${DOCSPAWNER_PORT:-3000}:3000"
+    environment:
+      # Match the render slots to the CPUs the container gets.
+      DOCSPAWNER_MAX_CONCURRENT_RENDERS: "1"
+      DOCSPAWNER_MAX_QUEUED_RENDERS: "100"
+      LOG_LEVEL: info
+    # The template is untrusted code: read-only file system, temp files in memory, fixed resources.
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # A small init process forwards signals and reaps child processes.
+    init: true
+    # Give running and queued renders time to finish on shutdown.
+    stop_grace_period: 30s
+    restart: unless-stopped
