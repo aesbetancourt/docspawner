@@ -1,5 +1,7 @@
 # docspawner
 
+[![CI](https://github.com/aesbetancourt/docspawner/actions/workflows/ci.yml/badge.svg)](https://github.com/aesbetancourt/docspawner/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Turn a Typst template and JSON data into a PDF with one HTTP call.**
 
 docspawner is a stateless PDF rendering worker. Your service sends the template and the data. docspawner returns the PDF, or an error that says exactly what to fix. It stores nothing, so you can run as many copies as you need.
