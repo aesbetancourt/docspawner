@@ -35,7 +35,7 @@ curl -s localhost:3000/render \
 Or render every example and see the metrics (needs `jq`):
 
 ```sh
-pnpm examples
+pnpm load
 ```
 
 ```text
@@ -75,7 +75,7 @@ Customer: #data.customer
 
 Each example is a folder with `template.typ` and `data.json`: exactly what you send to `POST /render`. The rendered PDF is next to them. A test renders every example with the real Typst binary and checks that two renders give the same bytes.
 
-The times are the mean time in the worker, measured with `pnpm examples -n 3` against the Docker image (1 CPU, 1 render slot). Click a page to open the PDF.
+The times are the mean time in the worker, measured with `pnpm load` against the Docker image (1 CPU, 1 render slot). Click a page to open the PDF.
 
 ### Batch release dossier
 
@@ -127,7 +127,7 @@ An invoice with 42 items: line items grouped by category with subtotals, VAT per
 
 ### Render the examples and see the metrics
 
-Run `pnpm examples [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]` against a running worker. It runs `examples/render.sh`. With no example, it renders all of them. It saves each PDF in the example's folder, for example `examples/invoice/invoice.pdf`. After you change an example, run it again, and run `pnpm previews` to render the page images in `docs/images/examples/`. For each document, it reports pages, size, the time in the worker (`x-render-duration-ms`), the round trip, warnings, and a SHA-256 prefix. When the invoice is selected, it also sends `REQUESTS` invoices (default 20) from `CLIENTS` parallel clients (default 4). It then reports throughput, p50 and p95 latency, and the peak use of render slots and the queue from `/health`. The script exits with `1` if a render fails. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`.
+Run `pnpm load` against a running worker. It runs `examples/render.sh -n 3`: every example 3 times, then the invoice under load. For other settings, run `examples/render.sh [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]`. With no example, it renders all of them. It saves each PDF in the example's folder, for example `examples/invoice/invoice.pdf`. After you change an example, run it again, and run `pnpm previews` to render the page images in `docs/images/examples/`. For each document, it reports pages, size, the time in the worker (`x-render-duration-ms`), the round trip, warnings, and a SHA-256 prefix. When the invoice is selected, it also sends `REQUESTS` invoices (default 20) from `CLIENTS` parallel clients (default 4). It then reports throughput, p50 and p95 latency, and the peak use of render slots and the queue from `/health`. The script exits with `1` if a render fails. Set `DOCSPAWNER_URL` when the worker is not at `http://127.0.0.1:3000`.
 
 ## API
 
@@ -256,7 +256,7 @@ Each render includes the start of a new Typst process and the load of the packag
 
 ### As a worker
 
-Measured against the Docker image with `docker-compose.yml` settings: 1 CPU, 512 MB, 1 render slot. The invoice rows come from `pnpm examples -l <requests> -c <clients> invoice`. The burst, shutdown, and memory rows come from earlier tests with a heavier template.
+Measured against the Docker image with `docker-compose.yml` settings: 1 CPU, 512 MB, 1 render slot. The invoice rows come from `examples/render.sh -l <requests> -c <clients> invoice`. The burst, shutdown, and memory rows come from earlier tests with a heavier template.
 
 | Test                                               | Result                                                          |
 | -------------------------------------------------- | --------------------------------------------------------------- |
@@ -349,19 +349,19 @@ pnpm start         # install the packages, build, and start the worker on :3000 
 pnpm check         # every check in one command
 ```
 
-| Command                             | Purpose                                                                          |
-| ----------------------------------- | -------------------------------------------------------------------------------- |
-| `pnpm check`                        | Every check: format, lint, unused code, types, tests with coverage, OpenAPI file |
-| `pnpm test` / `pnpm test:coverage`  | Unit, adapter, architecture, example, and end-to-end tests (real Typst)          |
-| `pnpm format` / `pnpm format:check` | Format with oxfmt / check the format                                             |
-| `pnpm lint`                         | Type-aware oxlint. Warnings fail, and lint-suppression comments fail.            |
-| `pnpm knip`                         | Find unused files, exports, and dependencies                                     |
-| `pnpm packages`                     | Install the allowlisted Typst packages (also runs before `pnpm test`)            |
-| `pnpm typecheck`                    | Type check                                                                       |
-| `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                   |
-| `pnpm examples`                     | Render the examples with a running worker and show the metrics                   |
-| `pnpm bench`                        | Measure render time without HTTP                                                 |
-| `pnpm previews`                     | Render the example page images in `docs/images/examples/`                        |
+| Command                             | Purpose                                                                                         |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm check`                        | Every check: format, lint, unused code, types, tests with coverage, OpenAPI file                |
+| `pnpm test` / `pnpm test:coverage`  | Unit, adapter, architecture, example, and end-to-end tests (real Typst)                         |
+| `pnpm format` / `pnpm format:check` | Format with oxfmt / check the format                                                            |
+| `pnpm lint`                         | Type-aware oxlint. Warnings fail, and lint-suppression comments fail.                           |
+| `pnpm knip`                         | Find unused files, exports, and dependencies                                                    |
+| `pnpm packages`                     | Install the allowlisted Typst packages (also runs before `pnpm test`)                           |
+| `pnpm typecheck`                    | Type check                                                                                      |
+| `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                                  |
+| `pnpm load`                         | Render every example 3 times with a running worker, load-test the invoice, and show the metrics |
+| `pnpm bench`                        | Measure render time without HTTP                                                                |
+| `pnpm previews`                     | Render the example page images in `docs/images/examples/`                                       |
 
 Code standards for contributors and AI agents are in [`CLAUDE.md`](CLAUDE.md).
 

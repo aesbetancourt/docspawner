@@ -10,7 +10,7 @@
     "start": "pnpm packages && pnpm build && LOG_FORMAT=pretty node dist/main.js",
     "typecheck": "tsc --noEmit",
     "packages": "sh scripts/install-typst-packages.sh",
-    "examples": "bash examples/render.sh",
+    "load": "bash examples/render.sh -n 3",
     "previews": "pnpm packages && sh scripts/example-previews.sh",
     "lint": "oxlint --type-aware --deny-warnings && pnpm lint:suppressions",
     "lint:suppressions": "! grep -rnE '(eslint|oxlint)-disable' src test scripts",
