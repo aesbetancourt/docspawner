@@ -34,7 +34,7 @@
       "id": "caller",
       "type": "external",
       "label": "Caller",
-      "sublabel": "any service \u00b7 JSON over HTTP",
+      "sublabel": "any service · JSON over HTTP",
       "pos": [40, 60],
       "size": [190, 84]
     },
@@ -42,7 +42,7 @@
       "id": "http",
       "type": "frontend",
       "label": "HTTP adapter",
-      "sublabel": "Fastify \u00b7 JSON Schema \u00b7 Swagger",
+      "sublabel": "Fastify · JSON Schema · Swagger",
       "tag": "adapter/in/http",
       "pos": [40, 260],
       "size": [190, 84]
@@ -69,7 +69,7 @@
       "id": "validate",
       "type": "backend",
       "label": "Input check",
-      "sublabel": "Zod \u00b7 size limits",
+      "sublabel": "own rules · size limits",
       "tag": "service",
       "pos": [580, 70],
       "size": [180, 84]
@@ -78,7 +78,7 @@
       "id": "slots",
       "type": "backend",
       "label": "Render slots",
-      "sublabel": "N at once \u00b7 bounded queue",
+      "sublabel": "N at once · bounded queue",
       "tag": "service",
       "pos": [580, 450],
       "size": [180, 84]
@@ -87,7 +87,7 @@
       "id": "domain",
       "type": "database",
       "label": "Domain",
-      "sublabel": "request \u00b7 result \u00b7 errors \u00b7 limits",
+      "sublabel": "request · result · errors · limits",
       "tag": "domain",
       "pos": [295, 560],
       "size": [210, 84]
@@ -115,7 +115,7 @@
       "type": "cloud",
       "icon": "backend",
       "label": "Typst CLI adapter",
-      "sublabel": "temp folder \u00b7 timeout \u00b7 no network",
+      "sublabel": "temp folder · timeout · pinned packages",
       "tag": "adapter/out/typst",
       "pos": [1125, 170],
       "size": [200, 84]
@@ -134,17 +134,17 @@
   "boundaries": [
     {
       "kind": "region",
-      "label": "adapter/in \u00b7 driving",
+      "label": "adapter/in · driving",
       "wraps": ["http"]
     },
     {
       "kind": "region",
-      "label": "core \u00b7 application + domain \u00b7 no I/O",
+      "label": "core · application + domain · no I/O",
       "wraps": ["portin", "service", "validate", "slots", "domain", "compiler", "clockport"]
     },
     {
       "kind": "region",
-      "label": "adapter/out \u00b7 driven",
+      "label": "adapter/out · driven",
       "wraps": ["typstcli", "clock"]
     }
   ],
@@ -231,7 +231,7 @@
       "items": [
         "Every import points into the core.",
         "Adapters depend on ports; the core never imports an adapter.",
-        "test/architecture.test.ts checks every import."
+        "The core uses no packages; test/architecture.test.ts checks every import."
       ]
     },
     {
