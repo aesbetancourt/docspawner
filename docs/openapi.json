@@ -1,0 +1,509 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "docspawner API",
+    "version": "0.1.0",
+    "description": "Render a Typst template and JSON data to a PDF. The caller sends the full template in each request. docspawner stores nothing."
+  },
+  "components": {
+    "schemas": {
+      "Diagnostic": {
+        "type": "object",
+        "description": "One problem that Typst reports for the template.",
+        "required": [
+          "severity",
+          "message"
+        ],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "examples": [
+              "unknown variable: nmae"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "description": "File with the problem. \"main.typ\" is your template.",
+            "examples": [
+              "main.typ"
+            ]
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based line number.",
+            "examples": [
+              3
+            ]
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based column number.",
+            "examples": [
+              8
+            ]
+          },
+          "hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Suggestions from Typst to fix the problem."
+          }
+        }
+      },
+      "RenderRequest": {
+        "type": "object",
+        "required": [
+          "template",
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "template": {
+            "type": "string",
+            "description": "Full Typst source (max 1 MB). The template must read its data with `#let data = json(\"data.json\")`."
+          },
+          "data": {
+            "description": "Any JSON value (max 5 MB). The template receives it as the file `data.json`."
+          },
+          "options": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60000,
+                "description": "Maximum compile time in milliseconds. The compile is stopped after this time. Default: 10000."
+              },
+              "timestamp": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Document creation time as a UNIX timestamp in seconds. Send it to get byte-identical output for the same input. Default: the current time.",
+                "examples": [
+                  1763251200
+                ]
+              }
+            }
+          }
+        },
+        "examples": [
+          {
+            "template": "#let data = json(\"data.json\")\n= Invoice #data.number\nCustomer: #data.customer",
+            "data": {
+              "number": "INV-001",
+              "customer": "Globex Corporation"
+            },
+            "options": {
+              "timestamp": 1763251200
+            }
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Check that the server is running",
+        "tags": [
+          "health"
+        ],
+        "description": "The server checks the Typst binary at startup and does not start without it.",
+        "responses": {
+          "200": {
+            "description": "The server is running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The server is running.",
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "typstVersion": {
+                      "type": "string",
+                      "description": "Typst version found at startup.",
+                      "examples": [
+                        "0.15.1"
+                      ]
+                    },
+                    "renders": {
+                      "type": "object",
+                      "description": "Current load of the worker.",
+                      "required": [
+                        "active",
+                        "queued",
+                        "maxConcurrent",
+                        "maxQueued"
+                      ],
+                      "properties": {
+                        "active": {
+                          "type": "integer",
+                          "description": "Renders running now."
+                        },
+                        "queued": {
+                          "type": "integer",
+                          "description": "Renders waiting for a free slot."
+                        },
+                        "maxConcurrent": {
+                          "type": "integer"
+                        },
+                        "maxQueued": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/render": {
+      "post": {
+        "operationId": "renderDocument",
+        "summary": "Render a Typst template and JSON data to a PDF",
+        "tags": [
+          "render"
+        ],
+        "description": "Compiles the template with the data and returns the PDF.\n\n**Template contract:** the data is available as the file `data.json`. Read it with `#let data = json(\"data.json\")`.\n\n**Determinism:** the same template, data, and `options.timestamp` give a byte-identical PDF.\n\n**Limits:** template 1 MB, data 5 MB, request body 8 MB, compile time 10 s by default (max 60 s).\n\n**Capacity:** the worker runs a fixed number of renders at once and queues the rest. The compile timeout starts when the render starts. When the queue is full, the worker returns `503` with `Retry-After`.\nOnly fonts embedded in Typst are available. Typst packages are not downloaded from the network.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The rendered PDF.",
+            "headers": {
+              "content-disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always `attachment; filename=\"document.pdf\"`. Browsers and Swagger UI offer the PDF as a download."
+              },
+              "x-typst-version": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Typst version that rendered the PDF."
+              },
+              "x-render-duration-ms": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Render time in milliseconds, including any wait for a free slot."
+              },
+              "x-typst-warnings": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Number of Typst warnings. The PDF was still produced."
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is not valid: a missing field, a wrong type, or an empty template.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The request is not valid: a missing field, a wrong type, or an empty template.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "invalid_input"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "The compile took more than `timeoutMs`. Typst was stopped.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The compile took more than `timeoutMs`. Typst was stopped.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "timeoutMs"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "timeout"
+                          ]
+                        },
+                        "timeoutMs": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The template, the data, or the request body is above its size limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The template, the data, or the request body is above its size limit.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "input_too_large"
+                          ]
+                        },
+                        "field": {
+                          "type": "string",
+                          "enum": [
+                            "template",
+                            "data"
+                          ],
+                          "description": "Set when a core limit is exceeded."
+                        },
+                        "limitBytes": {
+                          "type": "integer",
+                          "description": "Set when a core limit is exceeded."
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Set when the HTTP body limit is exceeded."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The content type is not supported, for example `application/xml`. Send `application/json`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The content type is not supported, for example `application/xml`. Send `application/json`.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "invalid_input"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The template does not compile. Each diagnostic has the location and Typst's hints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The template does not compile. Each diagnostic has the location and Typst's hints.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "diagnostics"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "compile_failed"
+                          ]
+                        },
+                        "diagnostics": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Diagnostic"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. No internal details are returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Unexpected server error. No internal details are returned.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "internal"
+                          ]
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The worker is at capacity: every render slot is busy and the wait queue is full. Retry after `Retry-After` seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The worker is at capacity: every render slot is busy and the wait queue is full. Retry after `Retry-After` seconds.",
+                  "type": "object",
+                  "required": [
+                    "error"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "retryAfterSeconds"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "busy"
+                          ]
+                        },
+                        "retryAfterSeconds": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "The server that serves this document"
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "render",
+      "description": "Turn a template and data into a PDF."
+    },
+    {
+      "name": "health",
+      "description": "Service status."
+    }
+  ]
+}
