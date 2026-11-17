@@ -5,7 +5,8 @@ import { systemClock } from "./adapter/out/clock/system-clock.js";
 import { TypstCliCompiler, type TypstCliOptions } from "./adapter/out/typst/typst-cli-compiler.js";
 import { RenderSlots } from "./application/service/render-slots.js";
 import { createRenderService } from "./application/service/render-service.js";
-import { loadConfig, type ServerConfig } from "./config.js";
+import { LOG_FORMAT, loadConfig, type ServerConfig } from "./config.js";
+import pretty from "pino-pretty";
 
 const SHUTDOWN_TIMEOUT_MS = 25_000;
 const SHUTDOWN_SIGNALS = ["SIGINT", "SIGTERM"] as const;
@@ -15,6 +16,52 @@ function errorMessage(error: unknown): string {
     return error.message;
   }
   return String(error);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function text(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+  return "";
+}
+
+/**
+ * Format one log line for people: request ID, message, request, and the status and time when it completes.
+ * @param log - The pino log object.
+ * @param messageKey - The key of the message in the log object.
+ * @returns The message part of the line, for example "req-3 request completed POST /render → 200 in 101 ms".
+ */
+function prettyMessage(log: Record<string, unknown>, messageKey: string): string {
+  const parts = [text(log.reqId), text(log[messageKey])];
+  if (isRecord(log.req)) {
+    parts.push(text(log.req.method), text(log.req.url));
+  }
+  if (isRecord(log.res) && typeof log.responseTime === "number") {
+    parts.push(`→ ${text(log.res.statusCode)} in ${log.responseTime.toFixed(0)} ms`);
+  }
+  return parts.filter(Boolean).join(" ");
+}
+
+/**
+ * Build the Fastify logger options: JSON lines, or one readable line per event.
+ * @param settings - The server configuration.
+ * @returns The logger options for Fastify.
+ */
+function loggerOptions(settings: ServerConfig): { level: string; stream?: pretty.PrettyStream } {
+  if (settings.logFormat === LOG_FORMAT.json) {
+    return { level: settings.logLevel };
+  }
+  const stream = pretty({
+    translateTime: "SYS:HH:MM:ss.l",
+    ignore: "pid,hostname,reqId,req,res,responseTime",
+    singleLine: true,
+    messageFormat: prettyMessage,
+  });
+  return { level: settings.logLevel, stream };
 }
 
 // 1. Read the settings. Stop with a clear message if one is invalid.
@@ -27,10 +74,11 @@ try {
 }
 
 // 2. Create the driven adapter for Typst. Stop if the Typst binary does not run.
-const typstOptions: TypstCliOptions = { binary: config.typstBinary, fontPaths: config.fontPaths };
-if (config.packagePath) {
-  typstOptions.packagePath = config.packagePath;
-}
+const typstOptions: TypstCliOptions = {
+  binary: config.typstBinary,
+  fontPaths: config.fontPaths,
+  packagePath: config.packagePath,
+};
 const compiler = new TypstCliCompiler(typstOptions);
 let typstVersion: string;
 try {
@@ -50,7 +98,7 @@ const app = await buildApp({
   renderer,
   typstVersion,
   load: () => slots.load(),
-  logger: { level: config.logLevel },
+  logger: loggerOptions(config),
 });
 
 // 5. Graceful shutdown: stop accepting requests, let running and queued renders finish, then exit.

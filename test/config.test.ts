@@ -1,4 +1,5 @@
 import { availableParallelism } from "node:os";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config.js";
 
@@ -8,9 +9,10 @@ describe("loadConfig", () => {
       port: 3000,
       host: "127.0.0.1",
       logLevel: "info",
+      logFormat: "json",
       typstBinary: "typst",
       fontPaths: [],
-      packagePath: undefined,
+      packagePath: resolve(import.meta.dirname, "../typst-packages"),
       maxConcurrentRenders: availableParallelism(),
       maxQueuedRenders: 100,
     });
@@ -22,6 +24,7 @@ describe("loadConfig", () => {
         PORT: "8080",
         HOST: "0.0.0.0",
         LOG_LEVEL: "warn",
+        LOG_FORMAT: "pretty",
         TYPST_BIN: "/usr/local/bin/typst",
         DOCSPAWNER_FONT_PATHS: "/fonts/a:/fonts/b",
         DOCSPAWNER_PACKAGE_PATH: "/opt/typst-packages",
@@ -32,6 +35,7 @@ describe("loadConfig", () => {
       port: 8080,
       host: "0.0.0.0",
       logLevel: "warn",
+      logFormat: "pretty",
       typstBinary: "/usr/local/bin/typst",
       fontPaths: ["/fonts/a", "/fonts/b"],
       packagePath: "/opt/typst-packages",

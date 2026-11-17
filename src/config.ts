@@ -1,16 +1,24 @@
 import { availableParallelism } from "node:os";
+import { fileURLToPath } from "node:url";
 import * as z from "zod/v4";
 
 const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace", "silent"] as const;
+
+/** `json` is for log collectors. `pretty` is for a person who reads the terminal. */
+export const LOG_FORMAT = { json: "json", pretty: "pretty" } as const;
+
+// `pnpm packages` installs the allowlist here. The Docker image sets its own folder.
+const REPO_PACKAGE_PATH = fileURLToPath(new URL("../typst-packages", import.meta.url));
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
   HOST: z.string().min(1).default("127.0.0.1"),
   LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
+  LOG_FORMAT: z.enum(LOG_FORMAT).default(LOG_FORMAT.json),
   TYPST_BIN: z.string().min(1).default("typst"),
   DOCSPAWNER_MAX_CONCURRENT_RENDERS: z.coerce.number().int().min(1).default(availableParallelism()),
   DOCSPAWNER_MAX_QUEUED_RENDERS: z.coerce.number().int().min(0).default(100),
-  DOCSPAWNER_PACKAGE_PATH: z.string().min(1).optional(),
+  DOCSPAWNER_PACKAGE_PATH: z.string().min(1).default(REPO_PACKAGE_PATH),
   DOCSPAWNER_FONT_PATHS: z
     .string()
     .optional()
@@ -21,10 +29,11 @@ export interface ServerConfig {
   port: number;
   host: string;
   logLevel: (typeof LOG_LEVELS)[number];
+  logFormat: (typeof LOG_FORMAT)[keyof typeof LOG_FORMAT];
   typstBinary: string;
   fontPaths: string[];
   /** Folder with the pre-installed Typst packages from the allowlist (ADR-0012). */
-  packagePath: string | undefined;
+  packagePath: string;
   maxConcurrentRenders: number;
   maxQueuedRenders: number;
 }
@@ -47,6 +56,7 @@ export function loadConfig(env: Record<string, string | undefined>): ServerConfi
     port: values.PORT,
     host: values.HOST,
     logLevel: values.LOG_LEVEL,
+    logFormat: values.LOG_FORMAT,
     typstBinary: values.TYPST_BIN,
     fontPaths: values.DOCSPAWNER_FONT_PATHS,
     packagePath: values.DOCSPAWNER_PACKAGE_PATH,
