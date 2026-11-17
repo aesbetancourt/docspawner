@@ -61,7 +61,7 @@ Every import points inward, toward the domain.
 | --------------------- | --------------------------- | ---------------- | ---------- |
 | `domain`              | `domain`                    | none             | No         |
 | `application/port`    | `domain`, `port`            | none             | No         |
-| `application/service` | `domain`, `port`, `service` | `zod` only       | No         |
+| `application/service` | `domain`, `port`, `service` | none (ADR-0013)  | No         |
 | `adapter`             | `domain`, `port`, `adapter` | any              | Yes        |
 
 `main.ts` and `config.ts` may import anything, because their job is to connect the parts. No layer may import them.

@@ -1,4 +1,6 @@
-import * as z from "zod/v4";
+// The core's own rules for a render request. Pure: no I/O.
+// Each driving adapter checks the shape of its input (the HTTP adapter uses JSON Schema).
+// The core checks only what is true for every adapter: no empty template, the size limits, and the option ranges.
 import {
   LIMITED_FIELD,
   RENDER_ERROR_KIND,
@@ -8,139 +10,100 @@ import {
   type RenderRequest,
 } from "../../domain/render.js";
 
+/** A request after the checks: ready to give to the compiler. */
 interface ValidatedInput {
+  /** The template text. */
   source: string;
+  /** The data, as UTF-8 JSON bytes. The compiler writes them to `data.json`. */
   dataJson: Uint8Array;
+  /** The timeout from the request, or the default timeout. */
   timeoutMs: number;
+  /** The timestamp from the request. `undefined` means "use the current time". */
   timestamp: number | undefined;
 }
 
+/** The validated input, or the first error to report. */
 export type ValidationResult = { ok: true; value: ValidatedInput } | { ok: false; error: RenderError };
 
-/** Marks a Zod issue as a size-limit failure, so it maps to `input_too_large` and not `invalid_input`. */
-interface TooLargeParams {
-  kind: typeof RENDER_ERROR_KIND.inputTooLarge;
-  field: LimitedField;
-  limitBytes: number;
-}
-
 const encoder = new TextEncoder();
-const schemas = new WeakMap<RenderLimits, ReturnType<typeof createRequestSchema>>();
 
 /**
- * Check a render request against the limits. Pure: no I/O.
- * @param request - The request as the caller sent it.
+ * Check a render request against the core's rules. A size-limit failure wins over other problems.
+ * @param request - The request from a driving adapter.
  * @param limits - The size and time limits to apply.
- * @returns The validated input, or the first error to report.
+ * @returns The validated input, or an `input_too_large` or `invalid_input` error.
  */
 export function validateRequest(request: RenderRequest, limits: RenderLimits): ValidationResult {
-  const parsed = schemaFor(limits).safeParse(request);
-  if (!parsed.success) {
-    return { ok: false, error: toRenderError(parsed.error.issues) };
+  const dataJson = encodeJson(request.data);
+
+  if (encoder.encode(request.template).byteLength > limits.maxTemplateBytes) {
+    return tooLarge(LIMITED_FIELD.template, limits.maxTemplateBytes);
+  }
+  if (dataJson !== undefined && dataJson.byteLength > limits.maxDataBytes) {
+    return tooLarge(LIMITED_FIELD.data, limits.maxDataBytes);
   }
 
-  const { template, data, options } = parsed.data;
+  const problems = findProblems(request, dataJson, limits);
+  if (dataJson === undefined || problems.length > 0) {
+    return { ok: false, error: { kind: RENDER_ERROR_KIND.invalidInput, message: problems.join("; ") } };
+  }
+
   return {
     ok: true,
     value: {
-      source: template.text,
-      dataJson: data,
-      timeoutMs: options?.timeoutMs ?? limits.defaultTimeoutMs,
-      timestamp: options?.timestamp,
+      source: request.template,
+      dataJson,
+      timeoutMs: request.options?.timeoutMs ?? limits.defaultTimeoutMs,
+      timestamp: request.options?.timestamp,
     },
   };
 }
 
-/** Build the schema once per limits object, because the limits are part of the schema. */
-function schemaFor(limits: RenderLimits): ReturnType<typeof createRequestSchema> {
-  const cached = schemas.get(limits);
-  if (cached) {
-    return cached;
+/**
+ * List every rule the request breaks, other than the size limits.
+ * @param request - The request.
+ * @param dataJson - The data as JSON bytes, or `undefined` when it is not a JSON value.
+ * @param limits - The limits, for the timeout range.
+ * @returns One message per problem, or an empty list.
+ */
+function findProblems(request: RenderRequest, dataJson: Uint8Array | undefined, limits: RenderLimits): string[] {
+  const problems: string[] = [];
+  if (request.template.trim() === "") {
+    problems.push("template must not be empty");
   }
-  const schema = createRequestSchema(limits);
-  schemas.set(limits, schema);
-  return schema;
-}
-
-function createRequestSchema(limits: RenderLimits) {
-  return z.object({
-    template: z
-      .string({ error: "template must be a string" })
-      .refine((text) => text.trim() !== "", "template must not be empty")
-      .transform((text, ctx) => {
-        const bytes = encoder.encode(text);
-        if (bytes.byteLength > limits.maxTemplateBytes) {
-          return tooLarge(ctx, LIMITED_FIELD.template, limits.maxTemplateBytes);
-        }
-        return { text, bytes };
-      }),
-
-    data: z.unknown().transform((value, ctx) => {
-      const text = toJson(value);
-      if (text === undefined) {
-        ctx.issues.push({ code: "custom", message: "data must be a JSON value", input: value });
-        return z.NEVER;
-      }
-      const bytes = encoder.encode(text);
-      if (bytes.byteLength > limits.maxDataBytes) {
-        return tooLarge(ctx, LIMITED_FIELD.data, limits.maxDataBytes);
-      }
-      return bytes;
-    }),
-
-    options: z
-      .object({
-        timeoutMs: z.int().min(1).max(limits.maxTimeoutMs).optional(),
-        timestamp: z.int().min(0).optional(),
-      })
-      .optional(),
-  });
-}
-
-function tooLarge(ctx: z.core.$RefinementCtx, field: LimitedField, limitBytes: number): never {
-  const params: TooLargeParams = { kind: RENDER_ERROR_KIND.inputTooLarge, field, limitBytes };
-  ctx.issues.push({
-    code: "custom",
-    message: `${field} is larger than ${limitBytes} bytes`,
-    input: undefined,
-    params: { ...params },
-  });
-  return z.NEVER;
-}
-
-function isTooLargeParams(value: unknown): value is TooLargeParams {
-  return (
-    typeof value === "object" && value !== null && "kind" in value && value.kind === RENDER_ERROR_KIND.inputTooLarge
-  );
-}
-
-/** Map Zod issues to one core error. A size-limit failure wins over other problems. */
-function toRenderError(issues: z.core.$ZodIssue[]): RenderError {
-  for (const issue of issues) {
-    if (issue.code === "custom" && isTooLargeParams(issue.params)) {
-      const { field, limitBytes } = issue.params;
-      return { kind: RENDER_ERROR_KIND.inputTooLarge, field, limitBytes };
-    }
+  if (dataJson === undefined) {
+    problems.push("data must be a JSON value");
   }
-
-  const message = issues.map(describeIssue).join("; ");
-  return { kind: RENDER_ERROR_KIND.invalidInput, message };
-}
-
-/** "options.timeoutMs: Too small", or the message alone when the issue is about the whole request. */
-function describeIssue(issue: z.core.$ZodIssue): string {
-  if (issue.path.length === 0) {
-    return issue.message;
+  const timeoutMs = request.options?.timeoutMs;
+  if (timeoutMs !== undefined && !isIntegerIn(timeoutMs, 1, limits.maxTimeoutMs)) {
+    problems.push(`options.timeoutMs must be an integer from 1 to ${limits.maxTimeoutMs}`);
   }
-  return `${issue.path.join(".")}: ${issue.message}`;
+  const timestamp = request.options?.timestamp;
+  if (timestamp !== undefined && !isIntegerIn(timestamp, 0, Number.MAX_SAFE_INTEGER)) {
+    problems.push("options.timestamp must be an integer of 0 or more");
+  }
+  return problems;
 }
 
-function toJson(value: unknown): string | undefined {
+function isIntegerIn(value: number, min: number, max: number): boolean {
+  return Number.isInteger(value) && value >= min && value <= max;
+}
+
+function tooLarge(field: LimitedField, limitBytes: number): ValidationResult {
+  return { ok: false, error: { kind: RENDER_ERROR_KIND.inputTooLarge, field, limitBytes } };
+}
+
+/**
+ * Turn the data into UTF-8 JSON bytes.
+ * @param value - The data as the caller sent it.
+ * @returns The bytes, or `undefined` when the value cannot become JSON.
+ */
+function encodeJson(value: unknown): Uint8Array | undefined {
   if (value === undefined) {
     return undefined;
   }
   try {
-    return JSON.stringify(value);
+    return encoder.encode(JSON.stringify(value));
   } catch {
     // A circular object or a BigInt cannot become JSON.
     return undefined;

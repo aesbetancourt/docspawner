@@ -14,7 +14,7 @@ It uses **hexagonal architecture** (ports and adapters) with the standard layout
 - **Framework:** Fastify 5, with `@fastify/swagger` and `@fastify/swagger-ui` (OpenAPI 3.1)
 - **Language:** TypeScript 7 (native Go compiler; strict mode, `exactOptionalPropertyTypes`, `NodeNext` module resolution)
 - **Renderer:** the Typst CLI, pinned to 0.15.1 in the Docker image
-- **Validation:** Zod for environment variables and the core's input checks, JSON Schema for route schemas
+- **Validation:** JSON Schema for the request shape at the HTTP edge, plain TypeScript for the core's rules (ADR-0013), Zod for environment variables
 - **Testing:** Vitest, with `app.inject()` for HTTP tests and the real Typst binary for adapter tests
 - **Linting:** oxlint with type-aware rules (`oxlint-tsgolint`)
 - **Formatting:** oxfmt
@@ -29,7 +29,7 @@ One rule organizes the folders: **`in` means someone calls us. `out` means we ca
 | `src/domain/`                  | The data: request, result, errors, limits, domain constants | `domain` only                            |
 | `src/application/port/in/`     | What the worker offers (`RenderDocument`)                   | `domain`, `port`                         |
 | `src/application/port/out/`    | What the worker needs (`TypstCompiler`, `Clock`)            | `domain`, `port`                         |
-| `src/application/service/`     | The logic, with no I/O                                      | `domain`, `port`, `service`, and `zod`   |
+| `src/application/service/`     | The logic, with no I/O                                      | `domain`, `port`, `service`              |
 | `src/adapter/in/http/`         | Fastify routes, schemas, Swagger                            | `domain`, `port`, `adapter`, any package |
 | `src/adapter/out/`             | Typst CLI, system clock                                     | `domain`, `port`, `adapter`, any package |
 | `src/config.ts`, `src/main.ts` | Startup: settings and the only composition root             | anything                                 |
@@ -91,7 +91,7 @@ All checks must pass before a change is complete.
 
 ### Changing a limit
 
-Edit `DEFAULT_LIMITS` in `src/domain/render.ts`. The API schema and the OpenAPI document read the limits from there.
+Edit `DEFAULT_LIMITS` in `src/domain/render.ts`. The API schema and the OpenAPI document read the limits from there. `BODY_LIMIT_BYTES` in `schemas.ts` must stay larger than `maxTemplateBytes + maxDataBytes`. If it does not, Fastify returns `413` before the core sees the request.
 
 ### Adding a configuration variable
 
@@ -114,5 +114,5 @@ Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/exa
 - Templates may import only the packages in `typst-packages/allowlist.typ` (ADR-0012). The worker blocks every download at render time. Run `pnpm packages` after a fresh clone; `pnpm test` runs it first.
 - In markup, a `#let` line ends at the newline. Wrap a multi-line expression in `{ }`.
 - Typst prints 0-based columns. `typst-diagnostics.ts` converts them to 1-based.
-- System fonts are ignored for deterministic output. Only fonts embedded in Typst are available.
-- `pnpm bench`, `pnpm openapi`, and the scripts in `scripts/` import from `dist/`. They run `pnpm build` first.
+- System fonts are ignored for deterministic output. Only fonts embedded in Typst and the folders in `DOCSPAWNER_FONT_PATHS` are available.
+- `pnpm bench` and `pnpm openapi` import from `dist/`. They run `pnpm build` first. `examples/render.sh` sends HTTP requests to a running worker.

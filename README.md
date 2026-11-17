@@ -148,13 +148,17 @@ Run `examples/render.sh [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]` agai
 | `options.timestamp` | No       | Document date as UNIX seconds. Send it for byte-identical output. |
 | `options.timeoutMs` | No       | Compile time limit, from 1 to 60000. Default: 10000.              |
 
-| Status | Meaning                    | Body                                                              |
-| ------ | -------------------------- | ----------------------------------------------------------------- |
-| `200`  | PDF rendered               | `application/pdf`, sent as `document.pdf`                         |
-| `400`  | Invalid request            | `{ "error": { "kind": "invalid_input", "message" } }`             |
-| `408`  | Compile took too long      | `{ "error": { "kind": "timeout", "timeoutMs" } }`                 |
-| `413`  | Template or data too large | `{ "error": { "kind": "input_too_large", ... } }`                 |
-| `422`  | Template does not compile  | `{ "error": { "kind": "compile_failed", "diagnostics": [...] } }` |
+| Status | Meaning                    | Body                                                                         |
+| ------ | -------------------------- | ---------------------------------------------------------------------------- |
+| `200`  | PDF rendered               | `application/pdf`, sent as `document.pdf`                                    |
+| `400`  | Invalid request            | `{ "error": { "kind": "invalid_input", "message" } }`                        |
+| `408`  | Compile took too long      | `{ "error": { "kind": "timeout", "timeoutMs" } }`                            |
+| `413`  | Template or data too large | `{ "error": { "kind": "input_too_large", ... } }`                            |
+| `415`  | Body is not JSON           | `{ "error": { "kind": "invalid_input", "message" } }`                        |
+| `422`  | Template does not compile  | `{ "error": { "kind": "compile_failed", "diagnostics": [...] } }`            |
+| `503`  | Worker at capacity         | `{ "error": { "kind": "busy", "retryAfterSeconds" } }`, `Retry-After` header |
+| `404`  | Unknown route              | `{ "error": { "kind": "not_found", "message" } }`                            |
+| `500`  | Unexpected server error    | `{ "error": { "kind": "internal", "message" } }`, no details                 |
 
 A misspelled field (`#data.nmae` instead of `#data.name`) returns `422`:
 
@@ -252,16 +256,16 @@ Each render includes the start of a new Typst process and the load of the packag
 
 ### As a worker
 
-Measured with `pnpm load` against the Docker image with `docker-compose.yml` settings: 1 CPU, 512 MB, 1 render slot.
+Measured against the Docker image with `docker-compose.yml` settings: 1 CPU, 512 MB, 1 render slot. The invoice rows come from `examples/render.sh -l <requests> -c <clients> invoice`. The burst, shutdown, and memory rows come from earlier tests with a heavier template.
 
-| Test                                               | Result                                         |
-| -------------------------------------------------- | ---------------------------------------------- |
-| Example invoice, 100 requests, 1 at a time         | 7.5 PDF/s · p50 133 ms · p95 149 ms            |
-| Example invoice, 100 requests, 64 at a time        | 7.7 PDF/s · p50 6.7 s · p95 8.3 s · all `200`  |
-| Burst of 80 heavy renders (~200 ms each) at once   | 80 of 80 succeed in 14 s                       |
-| Burst of 200 heavy renders, queue of 100           | 101 succeed, 99 get `503` with `Retry-After`   |
-| `docker compose stop` with 1 running and 22 queued | All 30 requests finish with `200`, stop in 4 s |
-| Peak memory under load                             | under 100 MiB                                  |
+| Test                                               | Result                                                          |
+| -------------------------------------------------- | --------------------------------------------------------------- |
+| Example invoice, 100 requests, 1 at a time         | 7.3 PDF/s · p50 126 ms · p95 141 ms                             |
+| Example invoice, 100 requests, 64 at a time        | 7.7 PDF/s · p50 6.5 s · p95 8.3 s · up to 63 queued · all `200` |
+| Burst of 80 heavy renders (~200 ms each) at once   | 80 of 80 succeed in 14 s                                        |
+| Burst of 200 heavy renders, queue of 100           | 101 succeed, 99 get `503` with `Retry-After`                    |
+| `docker compose stop` with 1 running and 22 queued | All 30 requests finish with `200`, stop in 4 s                  |
+| Peak memory under load                             | under 100 MiB                                                   |
 
 Without the render queue, the same burst of 80 heavy renders failed 72 of 80 with `408`: every render shared one CPU and reached the timeout. See [ADR-0011](docs/adr/0011-bounded-render-queue.md).
 
@@ -308,12 +312,12 @@ Expected failures are values, not exceptions. The HTTP adapter maps them to stat
 
 Around the code:
 
-| Folder              | Contents                                                                                                                                    |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `examples/`         | Example templates, data, and rendered PDFs, and `render.sh` to render them with a running worker and show metrics                           |
-| `docs/adr/`         | Architecture decision records                                                                                                               |
-| `docs/openapi.json` | The API contract, generated from the route schemas                                                                                          |
-| `scripts/`          | `bench.ts` (render speed), `load.ts` (load test), `export-openapi.ts` (writes the API contract), `example-previews.sh` (README page images) |
+| Folder              | Contents                                                                                                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `examples/`         | Example templates, data, and rendered PDFs, and `render.sh` to render them with a running worker and show metrics                                                                  |
+| `docs/adr/`         | Architecture decision records                                                                                                                                                      |
+| `docs/openapi.json` | The API contract, generated from the route schemas                                                                                                                                 |
+| `scripts/`          | `bench.ts` (render speed), `export-openapi.ts` (writes the API contract), `example-previews.sh` (README page images), `install-typst-packages.sh` (installs the package allowlist) |
 
 ## Decisions
 
@@ -333,6 +337,7 @@ Architecture decision records are in [`docs/adr/`](docs/adr/):
 | [0010](docs/adr/0010-http-api-only.md)                     | HTTP API only: the MCP adapter is removed               |
 | [0011](docs/adr/0011-bounded-render-queue.md)              | A fixed number of render slots and a bounded queue      |
 | [0012](docs/adr/0012-allowlisted-typst-packages.md)        | An allowlist of Typst packages, installed at build time |
+| [0013](docs/adr/0013-core-checks-only-its-own-rules.md)    | The core checks only its own rules, without Zod         |
 
 ## Development
 
@@ -354,7 +359,7 @@ pnpm check         # every check in one command
 | `pnpm packages`                     | Install the allowlisted Typst packages (also runs before `pnpm test`)            |
 | `pnpm typecheck`                    | Type check                                                                       |
 | `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                   |
-| `pnpm bench` / `pnpm load`          | Measure render time / load-test a running worker                                 |
+| `pnpm bench`                        | Measure render time without HTTP                                                 |
 | `pnpm previews`                     | Render the example page images in `docs/images/examples/`                        |
 
 Code standards for contributors and AI agents are in [`CLAUDE.md`](CLAUDE.md).

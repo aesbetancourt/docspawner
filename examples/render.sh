@@ -4,7 +4,7 @@
 # Usage: examples/render.sh [-n RUNS] [-l REQUESTS] [-c CLIENTS] [example ...]
 #   example      a folder in examples/ with template.typ and data.json (default: every example)
 #   -n RUNS      render each example RUNS times and report min, mean and max (default: 1)
-#   -l REQUESTS  when invoice is selected, send REQUESTS invoices at the same time and report latency and throughput (default: 20, 0 to skip)
+#   -l REQUESTS  when invoice is selected, send REQUESTS invoices from CLIENTS parallel clients and report latency and throughput (default: 20, 0 to skip)
 #   -c CLIENTS   number of clients that send the invoice requests in parallel (default: 4)
 #
 # The PDF of the last run is saved in the example's folder, for example
@@ -34,7 +34,11 @@ if ! [[ "$runs" =~ ^[1-9][0-9]*$ && "$load_clients" =~ ^[1-9][0-9]*$ && "$load_r
   exit 2
 fi
 
-examples=("$@")
+examples=()
+for example in "$@"; do
+  # Accept "invoice", "invoice/", and "examples/invoice".
+  examples+=("$(basename "$example")")
+done
 if [ ${#examples[@]} -eq 0 ]; then
   for dir in "$examples_dir"/*/; do
     [ -f "$dir/template.typ" ] && examples+=("$(basename "$dir")")
@@ -210,7 +214,10 @@ if [ "$load_requests" -gt 0 ] && [[ " ${examples[*]} " == *" invoice "* ]] && [ 
       [ "${chart_names[$i]}" = "invoice" ] && solo="${chart_values[$i]}"
     done
     if [ -n "$solo" ]; then
-      echo "  Slot wait    p50 about $(( $(percentile 50 "$work/server") - solo )) ms (in worker minus the $solo ms of one render alone)"
+      # Timing noise can make the difference negative when nothing waits.
+      wait_ms=$(( $(percentile 50 "$work/server") - solo ))
+      [ "$wait_ms" -lt 0 ] && wait_ms=0
+      echo "  Slot wait    p50 about $wait_ms ms (in worker minus the $solo ms of one render alone)"
     fi
   fi
   read -r peak_active peak_queued <<<"${peak:-0 0}"

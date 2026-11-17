@@ -74,13 +74,6 @@ describe("validateRequest", () => {
     expect(result).toEqual({ ok: false, error: { kind: "input_too_large", field: "template", limitBytes: 20 } });
   });
 
-  it("rejects a request that is not an object", () => {
-    // A caller in another language can send `null`. JSON.parse returns it without a type cast.
-    const notAnObject = JSON.parse("null");
-    const result = validateRequest(notAnObject, limits);
-    expect(result).toMatchObject({ ok: false, error: { kind: "invalid_input" } });
-  });
-
   it("uses the default timeout when none is sent", () => {
     const result = validateRequest({ template: "x", data: null }, limits);
     expect(result).toMatchObject({ ok: true, value: { timeoutMs: DEFAULT_LIMITS.defaultTimeoutMs } });
