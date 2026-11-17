@@ -31,17 +31,10 @@ export class RenderSlots {
   private readonly waiting: (() => void)[] = [];
 
   /**
-   * Create the render queue.
+   * Create the render queue. `config.ts` checks the limits at startup.
    * @param options - How many renders run at once, and how many can wait.
-   * @throws Error when a limit is not a whole number in range.
    */
   constructor(options: RenderSlotsOptions) {
-    if (!Number.isInteger(options.maxConcurrent) || options.maxConcurrent < 1) {
-      throw new Error("maxConcurrent must be an integer of 1 or more");
-    }
-    if (!Number.isInteger(options.maxQueued) || options.maxQueued < 0) {
-      throw new Error("maxQueued must be an integer of 0 or more");
-    }
     this.options = options;
   }
 

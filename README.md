@@ -246,11 +246,14 @@ To size a deployment: one render slot per CPU, and enough copies that the queue 
 
 ## Performance
 
-`pnpm bench` renders the example invoice (42 items, 3 pages, with `lilaq` and `tiaoma`) through the render service, without HTTP, on an Apple Silicon laptop with Typst 0.15.1:
+`pnpm load` renders every example 3 times and reports the time in the worker. Measured against the Docker image (1 CPU, 1 render slot) with Typst 0.15.1:
 
-| Runs            | p50       | p95        | PDF size  |
-| --------------- | --------- | ---------- | --------- |
-| 3 × 100 renders | 97–104 ms | 100–116 ms | 100.6 KiB |
+| Example                 | Pages | Time in the worker |
+| ----------------------- | ----- | ------------------ |
+| Batch release dossier   | 5     | about 560 ms       |
+| Certificate of Analysis | 2     | about 330 ms       |
+| Cold-chain report       | 2     | about 250 ms       |
+| Invoice                 | 3     | about 120 ms       |
 
 Each render includes the start of a new Typst process and the load of the packages. A plain invoice without packages renders in about 20 ms.
 
@@ -312,12 +315,12 @@ Expected failures are values, not exceptions. The HTTP adapter maps them to stat
 
 Around the code:
 
-| Folder              | Contents                                                                                                                                                                           |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `examples/`         | Example templates, data, and rendered PDFs, and `render.sh` to render them with a running worker and show metrics                                                                  |
-| `docs/adr/`         | Architecture decision records                                                                                                                                                      |
-| `docs/openapi.json` | The API contract, generated from the route schemas                                                                                                                                 |
-| `scripts/`          | `bench.ts` (render speed), `export-openapi.ts` (writes the API contract), `example-previews.sh` (README page images), `install-typst-packages.sh` (installs the package allowlist) |
+| Folder              | Contents                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `examples/`         | Example templates, data, and rendered PDFs, and `render.sh` to render them with a running worker and show metrics                                       |
+| `docs/adr/`         | Architecture decision records                                                                                                                           |
+| `docs/openapi.json` | The API contract, generated from the route schemas                                                                                                      |
+| `scripts/`          | `export-openapi.ts` (writes the API contract), `example-previews.sh` (README page images), `install-typst-packages.sh` (installs the package allowlist) |
 
 ## Decisions
 
@@ -360,7 +363,6 @@ pnpm check         # every check in one command
 | `pnpm typecheck`                    | Type check                                                                                      |
 | `pnpm openapi`                      | Regenerate `docs/openapi.json`                                                                  |
 | `pnpm load`                         | Render every example 3 times with a running worker, load-test the invoice, and show the metrics |
-| `pnpm bench`                        | Measure render time without HTTP                                                                |
 | `pnpm previews`                     | Render the example page images in `docs/images/examples/`                                       |
 
 Code standards for contributors and AI agents are in [`CLAUDE.md`](CLAUDE.md).

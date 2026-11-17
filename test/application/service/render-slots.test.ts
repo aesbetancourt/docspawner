@@ -93,9 +93,4 @@ describe("RenderSlots", () => {
     expect(await queued).toEqual(done);
     expect(slots.load()).toMatchObject({ active: 0, queued: 0 });
   });
-
-  it("rejects invalid options", () => {
-    expect(() => new RenderSlots({ maxConcurrent: 0, maxQueued: 1 })).toThrow("maxConcurrent");
-    expect(() => new RenderSlots({ maxConcurrent: 1, maxQueued: -1 })).toThrow("maxQueued");
-  });
 });

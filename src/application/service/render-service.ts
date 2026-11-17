@@ -4,7 +4,6 @@ import {
   DATA_FILE_NAME,
   DEFAULT_LIMITS,
   RENDER_ERROR_KIND,
-  type RenderLimits,
   type RenderRequest,
   type RenderResult,
 } from "../../domain/render.js";
@@ -25,18 +24,14 @@ export interface RenderServiceDeps {
   clock: Clock;
   /** Limits how many renders run at once. */
   slots: RenderSlots;
-  /** Overrides for `DEFAULT_LIMITS`. */
-  limits?: Partial<RenderLimits>;
 }
 
 /**
  * Create the render service. It implements the inbound port and calls the outbound ports.
- * @param deps - The Typst compiler, the clock, the render slots, and optional limits.
+ * @param deps - The Typst compiler, the clock, and the render slots.
  * @returns The service, behind the `RenderDocument` port.
  */
 export function createRenderService(deps: RenderServiceDeps): RenderDocument {
-  const limits: RenderLimits = { ...DEFAULT_LIMITS, ...deps.limits };
-
   return {
     /**
      * Render one request. See `RenderDocument.render`.
@@ -46,7 +41,7 @@ export function createRenderService(deps: RenderServiceDeps): RenderDocument {
      */
     async render(request: RenderRequest): Promise<RenderResult> {
       // 1. Check the input.
-      const validated = validateRequest(request, limits);
+      const validated = validateRequest(request, DEFAULT_LIMITS);
       if (!validated.ok) {
         return validated;
       }

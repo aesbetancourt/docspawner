@@ -23,7 +23,6 @@
     "test:coverage": "vitest run --coverage",
     "openapi": "pnpm build && node scripts/export-openapi.ts docs/openapi.json",
     "openapi:check": "pnpm build && node scripts/export-openapi.ts docs/openapi.json --check",
-    "bench": "pnpm packages && pnpm build && node scripts/bench.ts",
     "check": "pnpm format:check && pnpm lint && pnpm knip && pnpm typecheck && pnpm test:coverage && pnpm openapi:check"
   },
   "dependencies": {

@@ -115,4 +115,4 @@ Create `examples/<name>/template.typ` and `examples/<name>/data.json`. `test/exa
 - In markup, a `#let` line ends at the newline. Wrap a multi-line expression in `{ }`.
 - Typst prints 0-based columns. `typst-diagnostics.ts` converts them to 1-based.
 - System fonts are ignored for deterministic output. Only fonts embedded in Typst and the folders in `DOCSPAWNER_FONT_PATHS` are available.
-- `pnpm bench` and `pnpm openapi` import from `dist/`. They run `pnpm build` first. `pnpm load` sends HTTP requests to a running worker.
+- `pnpm openapi` and `scripts/export-openapi.ts` import from `dist/`. They run `pnpm build` first. `pnpm load` sends HTTP requests to a running worker.
